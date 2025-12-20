@@ -13,6 +13,7 @@ public enum ErrorCode {
   INVALID_SEARCH_CRITERIA("검색 조건을 잘못 설정하였습니다.", "4104_INVALID_SEARCH_CRITERIA_ERROR"),
   PROFANITY_IN_NAME("이름에 비속어가 포함되어 있습니다.", "4105_PROFANITY_IN_NAME_ERROR"),
   DUPLICATE_NAME("중복된 이름입니다.", "4106_DUPLICATE_NAME_ERROR"),
+  INVALID_NICKNAME("닉네임이 유효하지 않습니다.", "4107_INVALID_NICKNAME_ERROR"),
 
   // 계정 관련 오류
   EMAIL_ALREADY_EXISTS("이미 존재하는 이메일입니다.", "4201_EMAIL_ALREADY_EXISTS_ERROR"),

@@ -31,6 +31,9 @@ public class Player extends BaseTimeEntity implements UserDetails {
   @Transient
   private PlayerId playerId;
 
+  @Column(name = "player_uuid", unique = true, nullable = false, columnDefinition = "char(36)")
+  private UUID playerUuid;
+
   @Column(name = "uid", unique = true)
   private String uid; // pol 고유 식별 번호
 
@@ -174,6 +177,9 @@ public class Player extends BaseTimeEntity implements UserDetails {
 
   @PrePersist
   protected void onPrePersist() {
+    if (this.playerUuid == null) {
+      this.playerUuid = UUID.randomUUID();
+    }
     if (this.email != null && !this.email.isEmpty()) {
       this.uid = generateUID();
     }

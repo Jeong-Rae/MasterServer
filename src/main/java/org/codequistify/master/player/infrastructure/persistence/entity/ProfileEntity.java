@@ -1,0 +1,44 @@
+package org.codequistify.master.player.infrastructure.persistence.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.codequistify.master.global.util.BaseTimeEntity;
+import org.codequistify.master.player.domain.PlayerId;
+import org.codequistify.master.player.domain.profile.Nickname;
+import org.codequistify.master.player.domain.profile.Profile;
+
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
+@Table(
+    name = "player_profile",
+    indexes = {@Index(name = "idx_player_profile_nickname", columnList = "nickname", unique = true)})
+public class ProfileEntity extends BaseTimeEntity {
+  @Id
+  @Column(name = "player_uuid", nullable = false, columnDefinition = "char(36)")
+  private UUID playerUuid;
+
+  @Column(name = "nickname", nullable = false, unique = true, length = 50)
+  private String nickname;
+
+  public static ProfileEntity from(Profile profile) {
+    return ProfileEntity.builder()
+        .playerUuid(profile.playerId().value())
+        .nickname(profile.nickname().value())
+        .build();
+  }
+
+  public Profile toDomain() {
+    return new Profile(PlayerId.of(playerUuid), new Nickname(nickname));
+  }
+}

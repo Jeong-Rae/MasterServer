@@ -10,7 +10,12 @@ import org.springframework.stereotype.Component;
 public class PlayerConverter {
   public PlayerProfile convert(Player player) {
     return new PlayerProfile(
-        player.getUid(), player.getName(), player.getEmail(), player.getExp(), player.getRoles());
+        player.getUid(),
+        player.getName(),
+        player.getEmail(),
+        player.getExp(),
+        player.getRoles(),
+        player.getPlayerUuid());
   }
 
   public Player convert(SignUpRequest request) {

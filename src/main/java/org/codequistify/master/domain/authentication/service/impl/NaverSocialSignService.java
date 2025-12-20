@@ -14,6 +14,8 @@ import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.domain.player.service.PlayerDetailsService;
+import org.codequistify.master.player.application.command.PlayerRegistrationService;
+import org.codequistify.master.player.domain.PlayerId;
 import org.codequistify.master.global.aspect.LogMethodInvocation;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.config.OAuthKey;
@@ -34,6 +36,7 @@ import org.springframework.web.client.RestTemplate;
 public class NaverSocialSignService implements SocialSignService {
   private final PlayerDetailsService playerDetailsService;
   private final RestTemplate restTemplate;
+  private final PlayerRegistrationService playerRegistrationService;
 
   private final PlayerConverter playerConverter;
   private final Logger LOGGER = LoggerFactory.getLogger(NaverSocialSignService.class);
@@ -93,6 +96,10 @@ public class NaverSocialSignService implements SocialSignService {
         .exp(0)
         .build();
     player = playerDetailsService.save(player);
+    playerRegistrationService.registerNewPlayer(
+        PlayerId.of(player.getPlayerUuid()),
+        player.getName(),
+        player.getEmail().split("@")[0]);
     LOGGER.info("[socialSignUp] 신규 네이버 사용자 등록, Player: {}", oAuthData.resource().email());
     return player;
   }

@@ -16,8 +16,13 @@ public class PlayerValidator {
   private static final String NAME_REGEX = "^[a-zA-Z가-힣0-9]+$";
   private static final Pattern PASSWORD_PATTERN = Pattern.compile(PASSWORD_REGEX);
   private static final Pattern NAME_PATTERN = Pattern.compile(NAME_REGEX);
+  private static final int MIN_NAME_LENGTH = 1;
+  private static final int MAX_NAME_LENGTH = 50;
 
   public boolean isValidName(Player player) {
+    if (!isValidNameLength(player.getName())) {
+      return false;
+    }
     Matcher matcher = NAME_PATTERN.matcher(player.getName());
     if (matcher.matches()) {
       return !badWordFiltering.check(player.getName());
@@ -26,11 +31,22 @@ public class PlayerValidator {
   }
 
   public boolean isValidName(String name) {
+    if (!isValidNameLength(name)) {
+      return false;
+    }
     Matcher matcher = NAME_PATTERN.matcher(name);
     if (matcher.matches()) {
       return !badWordFiltering.check(name);
     }
     return false;
+  }
+
+  private boolean isValidNameLength(String name) {
+    if (name == null) {
+      return false;
+    }
+    int length = name.trim().length();
+    return length >= MIN_NAME_LENGTH && length <= MAX_NAME_LENGTH;
   }
 
   public boolean isValidPassword(Player player) {

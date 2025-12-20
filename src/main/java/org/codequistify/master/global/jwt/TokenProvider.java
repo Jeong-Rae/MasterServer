@@ -7,11 +7,15 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.domain.PlayerRoleType;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
+import org.codequistify.master.player.application.query.AuthorityQueryService;
+import org.codequistify.master.player.domain.PlayerId;
+import org.codequistify.master.player.domain.authority.Authority;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
@@ -32,6 +36,7 @@ public class TokenProvider {
   private final Long ACCESS_VALIDITY_TIME = 60 * 60 * 1000L;
   private final Long REFRESH_VALIDITY_TIME = 7 * 24 * 60 * 60 * 1000L;
   private final Logger LOGGER = LoggerFactory.getLogger(TokenProvider.class);
+  private final AuthorityQueryService authorityQueryService;
 
   @PostConstruct
   protected void init() {
@@ -50,7 +55,9 @@ public class TokenProvider {
 
   public String generateAccessToken(PlayerProfile response) {
     Claims claims = Jwts.claims();
-    claims.put("role", response.roles());
+    AuthorityClaims authorityClaims = resolveAuthorityClaims(response.playerId(), response.roles());
+    claims.put("role", authorityClaims.roles());
+    claims.put("permission", authorityClaims.permissions());
     Date now = new Date();
 
     String token = Jwts.builder()
@@ -68,7 +75,10 @@ public class TokenProvider {
 
   public String generateAccessToken(Player player) {
     Claims claims = Jwts.claims();
-    claims.put("role", player.getRoles());
+    AuthorityClaims authorityClaims =
+        resolveAuthorityClaims(player.getPlayerUuid(), player.getRoles());
+    claims.put("role", authorityClaims.roles());
+    claims.put("permission", authorityClaims.permissions());
     Date now = new Date();
 
     String token = Jwts.builder()
@@ -200,6 +210,25 @@ public class TokenProvider {
       return false;
     }
   }
+
+  private AuthorityClaims resolveAuthorityClaims(UUID playerUuid, List<String> fallbackRoles) {
+    if (playerUuid == null) {
+      return new AuthorityClaims(
+          fallbackRoles == null ? List.of() : fallbackRoles, List.of());
+    }
+    return authorityQueryService.findAuthority(PlayerId.of(playerUuid))
+        .map(this::toAuthorityClaims)
+        .orElseGet(
+            () ->
+                new AuthorityClaims(
+                    fallbackRoles == null ? List.of() : fallbackRoles, List.of()));
+  }
+
+  private AuthorityClaims toAuthorityClaims(Authority authority) {
+    return new AuthorityClaims(authority.roleAuthorities(), authority.permissionAuthorities());
+  }
+
+  private record AuthorityClaims(List<String> roles, List<String> permissions) {}
 
   public String resolveToken(HttpServletRequest httpServletRequest) {
     String authorization = httpServletRequest.getHeader("Authorization");
