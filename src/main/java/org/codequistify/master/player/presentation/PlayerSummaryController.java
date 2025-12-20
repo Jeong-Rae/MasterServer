@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/player-bc")
+@RequestMapping("/api/v1/player")
 public class PlayerSummaryController {
   private final PlayerSummaryQueryService playerSummaryQueryService;
   private final ProfileCommandService profileCommandService;
