@@ -12,9 +12,8 @@ import org.junit.jupiter.api.Test;
 class AuthorityTest {
   @Test
   void adminBypassesPermissionCheck() {
-    Authority authority =
-        new Authority(
-            PlayerId.of(UUID.randomUUID()), EnumSet.of(Role.ADMIN), EnumSet.noneOf(Permission.class));
+    Authority authority = new Authority(
+        PlayerId.of(UUID.randomUUID()), EnumSet.of(Role.ADMIN), EnumSet.noneOf(Permission.class));
 
     assertTrue(authority.hasPermission(Permission.MOCK_TESTS_ACCESS));
   }

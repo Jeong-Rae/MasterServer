@@ -1,10 +1,10 @@
 package org.codequistify.master.player.application.command;
 
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.player.application.port.ProfileRepository;
-import java.util.UUID;
 import org.codequistify.master.player.domain.model.Profile;
 import org.codequistify.master.player.domain.vo.Nickname;
 import org.codequistify.master.player.domain.vo.PlayerId;
@@ -34,11 +34,9 @@ public class ProfileCommandService {
     if (profileRepository.existsByNickname(nicknameVo)) {
       throw new BusinessException(ErrorCode.DUPLICATE_NAME, HttpStatus.BAD_REQUEST);
     }
-    Profile profile =
-        profileRepository
-            .findByPlayerId(playerId)
-            .orElseThrow(
-                () -> new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND));
+    Profile profile = profileRepository
+        .findByPlayerId(playerId)
+        .orElseThrow(() -> new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND));
     profile.changeNickname(nicknameVo);
     return profileRepository.save(profile);
   }

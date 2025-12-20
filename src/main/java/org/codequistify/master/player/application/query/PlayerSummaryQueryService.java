@@ -1,10 +1,10 @@
 package org.codequistify.master.player.application.query;
 
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.player.application.query.view.PlayerSummaryView;
-import java.util.UUID;
 import org.codequistify.master.player.domain.model.Authority;
 import org.codequistify.master.player.domain.model.Profile;
 import org.codequistify.master.player.domain.model.Rating;
@@ -22,21 +22,15 @@ public class PlayerSummaryQueryService {
   public PlayerSummaryView getSummary(UUID playerUuid) {
     PlayerId playerId = PlayerId.of(playerUuid);
     // NOTE: activity, ban status, and ranking aggregation are intentionally excluded.
-    Profile profile =
-        profileQueryService
-            .findProfile(playerId)
-            .orElseThrow(
-                () -> new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND));
-    Rating rating =
-        ratingQueryService
-            .findRating(playerId)
-            .orElseThrow(
-                () -> new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND));
-    Authority authority =
-        authorityQueryService
-            .findAuthority(playerId)
-            .orElseThrow(
-                () -> new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND));
+    Profile profile = profileQueryService
+        .findProfile(playerId)
+        .orElseThrow(() -> new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND));
+    Rating rating = ratingQueryService
+        .findRating(playerId)
+        .orElseThrow(() -> new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND));
+    Authority authority = authorityQueryService
+        .findAuthority(playerId)
+        .orElseThrow(() -> new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND));
 
     return new PlayerSummaryView(
         playerId.value(),

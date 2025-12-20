@@ -13,12 +13,12 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.domain.PlayerRoleType;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
-import org.codequistify.master.player.application.query.AuthorityQueryService;
-import org.codequistify.master.player.domain.model.Authority;
-import org.codequistify.master.player.domain.vo.PlayerId;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
+import org.codequistify.master.player.application.query.AuthorityQueryService;
+import org.codequistify.master.player.domain.model.Authority;
+import org.codequistify.master.player.domain.vo.PlayerId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -213,15 +213,13 @@ public class TokenProvider {
 
   private AuthorityClaims resolveAuthorityClaims(UUID playerUuid, List<String> fallbackRoles) {
     if (playerUuid == null) {
-      return new AuthorityClaims(
-          fallbackRoles == null ? List.of() : fallbackRoles, List.of());
+      return new AuthorityClaims(fallbackRoles == null ? List.of() : fallbackRoles, List.of());
     }
-    return authorityQueryService.findAuthority(PlayerId.of(playerUuid))
+    return authorityQueryService
+        .findAuthority(PlayerId.of(playerUuid))
         .map(this::toAuthorityClaims)
-        .orElseGet(
-            () ->
-                new AuthorityClaims(
-                    fallbackRoles == null ? List.of() : fallbackRoles, List.of()));
+        .orElseGet(() ->
+            new AuthorityClaims(fallbackRoles == null ? List.of() : fallbackRoles, List.of()));
   }
 
   private AuthorityClaims toAuthorityClaims(Authority authority) {

@@ -1,5 +1,6 @@
 package org.codequistify.master.player.presentation;
 
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
@@ -7,7 +8,6 @@ import org.codequistify.master.player.application.command.ProfileCommandService;
 import org.codequistify.master.player.application.query.PlayerSummaryQueryService;
 import org.codequistify.master.player.application.query.view.PlayerSummaryView;
 import org.codequistify.master.player.presentation.dto.ChangeNicknameRequest;
-import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

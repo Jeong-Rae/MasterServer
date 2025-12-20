@@ -1,8 +1,8 @@
 package org.codequistify.master.player.application.command;
 
 import java.util.EnumSet;
-import lombok.RequiredArgsConstructor;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.codequistify.master.player.domain.vo.Nickname;
 import org.codequistify.master.player.domain.vo.Permission;
 import org.codequistify.master.player.domain.vo.PlayerId;
@@ -22,9 +22,7 @@ public class PlayerRegistrationService {
     profileCommandService.createProfile(playerUuid, nickname.value());
     ratingCommandService.createRating(playerUuid);
     authorityCommandService.createAuthority(
-        playerUuid,
-        EnumSet.of(Role.PLAYER),
-        EnumSet.of(Permission.BASIC_PROBLEMS_ACCESS));
+        playerUuid, EnumSet.of(Role.PLAYER), EnumSet.of(Permission.BASIC_PROBLEMS_ACCESS));
   }
 
   @Transactional

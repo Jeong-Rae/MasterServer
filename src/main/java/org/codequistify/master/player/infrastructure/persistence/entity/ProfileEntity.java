@@ -22,7 +22,8 @@ import org.codequistify.master.player.domain.vo.PlayerId;
 @Entity
 @Table(
     name = "player_profile",
-    indexes = {@Index(name = "idx_player_profile_nickname", columnList = "nickname", unique = true)})
+    indexes = {@Index(name = "idx_player_profile_nickname", columnList = "nickname", unique = true)
+    })
 public class ProfileEntity extends BaseTimeEntity {
   @Id
   @Column(name = "player_uuid", nullable = false, columnDefinition = "char(36)")

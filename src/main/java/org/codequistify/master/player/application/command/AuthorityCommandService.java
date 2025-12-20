@@ -1,11 +1,11 @@
 package org.codequistify.master.player.application.command;
 
 import java.util.EnumSet;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.player.application.port.AuthorityRepository;
-import java.util.UUID;
 import org.codequistify.master.player.domain.model.Authority;
 import org.codequistify.master.player.domain.vo.Permission;
 import org.codequistify.master.player.domain.vo.PlayerId;
@@ -29,11 +29,9 @@ public class AuthorityCommandService {
   public Authority grantRole(UUID playerUuid, Role role) {
     // TODO: session invalidation for role/permission changes is excluded from this refactor.
     PlayerId playerId = PlayerId.of(playerUuid);
-    Authority authority =
-        authorityRepository
-            .findByPlayerId(playerId)
-            .orElseThrow(
-                () -> new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND));
+    Authority authority = authorityRepository
+        .findByPlayerId(playerId)
+        .orElseThrow(() -> new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND));
     authority.grantRole(role);
     return authorityRepository.save(authority);
   }
@@ -42,11 +40,9 @@ public class AuthorityCommandService {
   public Authority grantPermission(UUID playerUuid, Permission permission) {
     // TODO: session invalidation for role/permission changes is excluded from this refactor.
     PlayerId playerId = PlayerId.of(playerUuid);
-    Authority authority =
-        authorityRepository
-            .findByPlayerId(playerId)
-            .orElseThrow(
-                () -> new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND));
+    Authority authority = authorityRepository
+        .findByPlayerId(playerId)
+        .orElseThrow(() -> new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND));
     authority.grantPermission(permission);
     return authorityRepository.save(authority);
   }

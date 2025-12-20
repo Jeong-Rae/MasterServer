@@ -67,11 +67,8 @@ public class PlayerProfileService {
     return authorityQueryService
         .findAuthority(PlayerId.of(player.getPlayerUuid()))
         .map(authority -> authority.isAdmin())
-        .orElseGet(
-            () ->
-                PlayerRolesChecker.checkAnyRole(
-                    player,
-                    List.of(PlayerRoleType.ADMIN.getRole(), PlayerRoleType.SUPER_ADMIN.getRole())));
+        .orElseGet(() -> PlayerRolesChecker.checkAnyRole(
+            player, List.of(PlayerRoleType.ADMIN.getRole(), PlayerRoleType.SUPER_ADMIN.getRole())));
   }
 
   @Transactional

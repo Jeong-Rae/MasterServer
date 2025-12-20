@@ -35,9 +35,7 @@ public class AuthorityEntity extends BaseTimeEntity {
   private UUID playerUuid;
 
   @ElementCollection(fetch = FetchType.EAGER)
-  @CollectionTable(
-      name = "player_authority_role",
-      joinColumns = @JoinColumn(name = "player_uuid"))
+  @CollectionTable(name = "player_authority_role", joinColumns = @JoinColumn(name = "player_uuid"))
   @Enumerated(EnumType.STRING)
   @Column(name = "role", nullable = false)
   private Set<Role> roles;
@@ -59,10 +57,7 @@ public class AuthorityEntity extends BaseTimeEntity {
   }
 
   public Authority toDomain() {
-    return new Authority(
-        PlayerId.of(playerUuid),
-        toRoleSet(roles),
-        toPermissionSet(permissions));
+    return new Authority(PlayerId.of(playerUuid), toRoleSet(roles), toPermissionSet(permissions));
   }
 
   private EnumSet<Role> toRoleSet(Set<Role> roles) {

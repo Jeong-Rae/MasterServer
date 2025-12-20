@@ -1,10 +1,10 @@
 package org.codequistify.master.player.application.command;
 
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.player.application.port.RatingRepository;
-import java.util.UUID;
 import org.codequistify.master.player.domain.model.Rating;
 import org.codequistify.master.player.domain.vo.PlayerId;
 import org.codequistify.master.player.domain.vo.Point;
@@ -26,11 +26,9 @@ public class RatingCommandService {
   public Rating addPoints(UUID playerUuid, long points) {
     // TODO: ranking/tier aggregation remains out of scope for this refactor.
     PlayerId playerId = PlayerId.of(playerUuid);
-    Rating rating =
-        ratingRepository
-            .findByPlayerId(playerId)
-            .orElseThrow(
-                () -> new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND));
+    Rating rating = ratingRepository
+        .findByPlayerId(playerId)
+        .orElseThrow(() -> new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND));
     rating.addPoints(points);
     return ratingRepository.save(rating);
   }
