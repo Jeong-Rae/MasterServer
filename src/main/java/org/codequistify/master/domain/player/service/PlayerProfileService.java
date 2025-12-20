@@ -15,8 +15,8 @@ import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.player.application.command.RatingCommandService;
 import org.codequistify.master.player.application.query.AuthorityQueryService;
 import org.codequistify.master.player.application.query.ProfileQueryService;
-import org.codequistify.master.player.domain.PlayerId;
-import org.codequistify.master.player.domain.profile.Nickname;
+import org.codequistify.master.player.domain.vo.Nickname;
+import org.codequistify.master.player.domain.vo.PlayerId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,7 +77,7 @@ public class PlayerProfileService {
   @Transactional
   public Integer increaseExp(Player player, int point) {
     if (player.getPlayerUuid() != null) {
-      ratingCommandService.addPoints(PlayerId.of(player.getPlayerUuid()), point);
+      ratingCommandService.addPoints(player.getPlayerUuid(), point);
     }
     int exp = player.increaseLevelPoint(point);
     playerRepository.save(player);

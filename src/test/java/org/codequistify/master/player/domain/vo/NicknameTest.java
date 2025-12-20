@@ -1,4 +1,4 @@
-package org.codequistify.master.player.domain.profile;
+package org.codequistify.master.player.domain.vo;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;

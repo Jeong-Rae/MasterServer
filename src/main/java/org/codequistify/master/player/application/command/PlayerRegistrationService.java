@@ -2,10 +2,11 @@ package org.codequistify.master.player.application.command;
 
 import java.util.EnumSet;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.player.domain.PlayerId;
-import org.codequistify.master.player.domain.authority.Permission;
-import org.codequistify.master.player.domain.authority.Role;
-import org.codequistify.master.player.domain.profile.Nickname;
+import java.util.UUID;
+import org.codequistify.master.player.domain.vo.Nickname;
+import org.codequistify.master.player.domain.vo.Permission;
+import org.codequistify.master.player.domain.vo.PlayerId;
+import org.codequistify.master.player.domain.vo.Role;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,20 +18,26 @@ public class PlayerRegistrationService {
   private final AuthorityCommandService authorityCommandService;
 
   @Transactional
-  public void registerNewPlayer(PlayerId playerId, Nickname nickname) {
-    profileCommandService.createProfile(playerId, nickname);
-    ratingCommandService.createRating(playerId);
+  public void registerNewPlayer(UUID playerUuid, Nickname nickname) {
+    profileCommandService.createProfile(playerUuid, nickname.value());
+    ratingCommandService.createRating(playerUuid);
     authorityCommandService.createAuthority(
-        playerId,
+        playerUuid,
         EnumSet.of(Role.PLAYER),
         EnumSet.of(Permission.BASIC_PROBLEMS_ACCESS));
   }
 
   @Transactional
+  public void registerNewPlayer(UUID playerUuid, String nickname) {
+    registerNewPlayer(playerUuid, new Nickname(nickname));
+  }
+
+  @Transactional
   public void registerNewPlayer(
-      PlayerId playerId, String nicknameCandidate, String fallbackNickname) {
+      UUID playerUuid, String nicknameCandidate, String fallbackNickname) {
+    PlayerId playerId = PlayerId.of(playerUuid);
     Nickname nickname = toNickname(playerId, nicknameCandidate, fallbackNickname);
-    registerNewPlayer(playerId, nickname);
+    registerNewPlayer(playerUuid, nickname);
   }
 
   private Nickname toNickname(

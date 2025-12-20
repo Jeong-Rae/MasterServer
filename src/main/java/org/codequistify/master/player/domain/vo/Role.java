@@ -1,4 +1,4 @@
-package org.codequistify.master.player.domain.authority;
+package org.codequistify.master.player.domain.vo;
 
 public enum Role {
   PLAYER("ROLE_PLAYER"),

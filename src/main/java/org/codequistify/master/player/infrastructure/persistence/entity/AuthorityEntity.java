@@ -18,10 +18,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.codequistify.master.global.util.BaseTimeEntity;
-import org.codequistify.master.player.domain.PlayerId;
-import org.codequistify.master.player.domain.authority.Authority;
-import org.codequistify.master.player.domain.authority.Permission;
-import org.codequistify.master.player.domain.authority.Role;
+import org.codequistify.master.player.domain.model.Authority;
+import org.codequistify.master.player.domain.vo.Permission;
+import org.codequistify.master.player.domain.vo.PlayerId;
+import org.codequistify.master.player.domain.vo.Role;
 
 @Getter
 @NoArgsConstructor

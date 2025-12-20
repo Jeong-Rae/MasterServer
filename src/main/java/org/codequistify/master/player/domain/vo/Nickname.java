@@ -1,4 +1,4 @@
-package org.codequistify.master.player.domain.profile;
+package org.codequistify.master.player.domain.vo;
 
 import java.util.Objects;
 import java.util.regex.Pattern;

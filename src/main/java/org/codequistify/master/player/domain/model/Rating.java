@@ -1,7 +1,8 @@
-package org.codequistify.master.player.domain.rating;
+package org.codequistify.master.player.domain.model;
 
 import java.util.Objects;
-import org.codequistify.master.player.domain.PlayerId;
+import org.codequistify.master.player.domain.vo.PlayerId;
+import org.codequistify.master.player.domain.vo.Point;
 
 public class Rating {
   private final PlayerId playerId;

@@ -1,10 +1,12 @@
-package org.codequistify.master.player.domain.authority;
+package org.codequistify.master.player.domain.model;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.EnumSet;
 import java.util.UUID;
-import org.codequistify.master.player.domain.PlayerId;
+import org.codequistify.master.player.domain.vo.Permission;
+import org.codequistify.master.player.domain.vo.PlayerId;
+import org.codequistify.master.player.domain.vo.Role;
 import org.junit.jupiter.api.Test;
 
 class AuthorityTest {

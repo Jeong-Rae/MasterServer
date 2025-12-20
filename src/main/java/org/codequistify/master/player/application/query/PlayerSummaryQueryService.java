@@ -4,10 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.player.application.query.view.PlayerSummaryView;
-import org.codequistify.master.player.domain.PlayerId;
-import org.codequistify.master.player.domain.authority.Authority;
-import org.codequistify.master.player.domain.profile.Profile;
-import org.codequistify.master.player.domain.rating.Rating;
+import java.util.UUID;
+import org.codequistify.master.player.domain.model.Authority;
+import org.codequistify.master.player.domain.model.Profile;
+import org.codequistify.master.player.domain.model.Rating;
+import org.codequistify.master.player.domain.vo.PlayerId;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +19,8 @@ public class PlayerSummaryQueryService {
   private final RatingQueryService ratingQueryService;
   private final AuthorityQueryService authorityQueryService;
 
-  public PlayerSummaryView getSummary(PlayerId playerId) {
+  public PlayerSummaryView getSummary(UUID playerUuid) {
+    PlayerId playerId = PlayerId.of(playerUuid);
     // NOTE: activity, ban status, and ranking aggregation are intentionally excluded.
     Profile profile =
         profileQueryService

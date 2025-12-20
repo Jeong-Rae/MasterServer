@@ -4,9 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.player.application.port.RatingRepository;
-import org.codequistify.master.player.domain.PlayerId;
-import org.codequistify.master.player.domain.rating.Point;
-import org.codequistify.master.player.domain.rating.Rating;
+import java.util.UUID;
+import org.codequistify.master.player.domain.model.Rating;
+import org.codequistify.master.player.domain.vo.PlayerId;
+import org.codequistify.master.player.domain.vo.Point;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,13 +18,14 @@ public class RatingCommandService {
   private final RatingRepository ratingRepository;
 
   @Transactional
-  public Rating createRating(PlayerId playerId) {
-    return ratingRepository.save(new Rating(playerId, new Point(0)));
+  public Rating createRating(UUID playerUuid) {
+    return ratingRepository.save(new Rating(PlayerId.of(playerUuid), new Point(0)));
   }
 
   @Transactional
-  public Rating addPoints(PlayerId playerId, long points) {
+  public Rating addPoints(UUID playerUuid, long points) {
     // TODO: ranking/tier aggregation remains out of scope for this refactor.
+    PlayerId playerId = PlayerId.of(playerUuid);
     Rating rating =
         ratingRepository
             .findByPlayerId(playerId)

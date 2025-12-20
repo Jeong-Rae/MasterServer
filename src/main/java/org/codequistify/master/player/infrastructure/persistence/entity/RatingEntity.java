@@ -10,9 +10,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.codequistify.master.global.util.BaseTimeEntity;
-import org.codequistify.master.player.domain.PlayerId;
-import org.codequistify.master.player.domain.rating.Point;
-import org.codequistify.master.player.domain.rating.Rating;
+import org.codequistify.master.player.domain.model.Rating;
+import org.codequistify.master.player.domain.vo.PlayerId;
+import org.codequistify.master.player.domain.vo.Point;
 
 @Getter
 @NoArgsConstructor

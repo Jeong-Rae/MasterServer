@@ -3,8 +3,8 @@ package org.codequistify.master.player.application.query;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.player.application.port.AuthorityRepository;
-import org.codequistify.master.player.domain.PlayerId;
-import org.codequistify.master.player.domain.authority.Authority;
+import org.codequistify.master.player.domain.model.Authority;
+import org.codequistify.master.player.domain.vo.PlayerId;
 import org.springframework.stereotype.Service;
 
 @Service

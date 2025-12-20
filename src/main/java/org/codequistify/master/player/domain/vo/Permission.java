@@ -1,4 +1,4 @@
-package org.codequistify.master.player.domain.authority;
+package org.codequistify.master.player.domain.vo;
 
 public enum Permission {
   BASIC_PROBLEMS_ACCESS("ROLE_BASIC_PROBLEMS_ACCESS"),

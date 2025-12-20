@@ -23,8 +23,6 @@ import org.codequistify.master.global.jwt.dto.TokenInfo;
 import org.codequistify.master.global.jwt.dto.TokenRequest;
 import org.codequistify.master.global.jwt.dto.TokenResponse;
 import org.codequistify.master.player.application.command.PlayerRegistrationService;
-import org.codequistify.master.player.domain.PlayerId;
-import org.codequistify.master.player.domain.profile.Nickname;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
@@ -85,8 +83,7 @@ public class AuthenticationService {
 
     player.encodePassword(passwordEncoder);
     player = playerDetailsService.save(player);
-    playerRegistrationService.registerNewPlayer(
-        PlayerId.of(player.getPlayerUuid()), new Nickname(request.name()));
+    playerRegistrationService.registerNewPlayer(player.getPlayerUuid(), request.name());
 
     LOGGER.info("[signUp] Player: {}, 회원가입 완료", player.getUid());
 

@@ -1,4 +1,4 @@
-package org.codequistify.master.player.domain.rating;
+package org.codequistify.master.player.domain.vo;
 
 public record Point(long value) {
   public Point {

@@ -1,7 +1,8 @@
-package org.codequistify.master.player.domain.profile;
+package org.codequistify.master.player.domain.model;
 
 import java.util.Objects;
-import org.codequistify.master.player.domain.PlayerId;
+import org.codequistify.master.player.domain.vo.Nickname;
+import org.codequistify.master.player.domain.vo.PlayerId;
 
 public class Profile {
   private final PlayerId playerId;

@@ -3,9 +3,9 @@ package org.codequistify.master.player.infrastructure.persistence.repository;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.player.application.port.ProfileRepository;
-import org.codequistify.master.player.domain.PlayerId;
-import org.codequistify.master.player.domain.profile.Nickname;
-import org.codequistify.master.player.domain.profile.Profile;
+import org.codequistify.master.player.domain.model.Profile;
+import org.codequistify.master.player.domain.vo.Nickname;
+import org.codequistify.master.player.domain.vo.PlayerId;
 import org.codequistify.master.player.infrastructure.persistence.entity.ProfileEntity;
 import org.springframework.stereotype.Repository;
 

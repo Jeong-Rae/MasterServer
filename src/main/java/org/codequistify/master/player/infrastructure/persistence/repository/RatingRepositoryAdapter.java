@@ -3,8 +3,8 @@ package org.codequistify.master.player.infrastructure.persistence.repository;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.player.application.port.RatingRepository;
-import org.codequistify.master.player.domain.PlayerId;
-import org.codequistify.master.player.domain.rating.Rating;
+import org.codequistify.master.player.domain.model.Rating;
+import org.codequistify.master.player.domain.vo.PlayerId;
 import org.codequistify.master.player.infrastructure.persistence.entity.RatingEntity;
 import org.springframework.stereotype.Repository;
 
