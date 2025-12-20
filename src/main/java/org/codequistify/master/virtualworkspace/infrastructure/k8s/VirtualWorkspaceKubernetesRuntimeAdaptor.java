@@ -1,14 +1,14 @@
 package org.codequistify.master.virtualworkspace.infrastructure.k8s;
 
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.virtualworkspace.application.port.VirtualWorkspaceClient;
 import org.codequistify.master.virtualworkspace.domain.model.VirtualWorkspace;
-import org.codequistify.master.virtualworkspace.domain.service.VirtualWorkspaceRuntimeService;
 import org.codequistify.master.virtualworkspace.domain.vo.WorkspacePublicId;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class VirtualWorkspaceKubernetesRuntimeService implements VirtualWorkspaceRuntimeService {
+public class VirtualWorkspaceKubernetesRuntimeAdaptor implements VirtualWorkspaceClient {
   private final VirtualWorkspaceKubernetesManager kubernetesManager;
 
   @Override

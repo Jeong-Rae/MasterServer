@@ -13,15 +13,15 @@ import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.virtualworkspace.config.VirtualWorkspaceDefaults;
 import org.codequistify.master.virtualworkspace.config.VirtualWorkspaceExternalEndpoints;
 import org.codequistify.master.virtualworkspace.domain.model.StageSpecSnapshot;
+import org.codequistify.master.virtualworkspace.application.port.VirtualWorkspaceRepository;
+import org.codequistify.master.virtualworkspace.application.port.VirtualWorkspaceClient;
 import org.codequistify.master.virtualworkspace.domain.model.VirtualWorkspace;
 import org.codequistify.master.virtualworkspace.domain.model.VirtualWorkspaceInternalRoute;
 import org.codequistify.master.virtualworkspace.domain.model.VirtualWorkspacePublicEndpoint;
 import org.codequistify.master.virtualworkspace.domain.model.WorkspaceAccessPolicy;
-import org.codequistify.master.virtualworkspace.domain.service.VirtualWorkspaceRuntimeService;
 import org.codequistify.master.virtualworkspace.domain.vo.SubjectId;
 import org.codequistify.master.virtualworkspace.domain.vo.VirtualWorkspaceId;
 import org.codequistify.master.virtualworkspace.domain.vo.WorkspacePublicId;
-import org.codequistify.master.virtualworkspace.infrastructure.persistence.repository.VirtualWorkspaceRepository;
 import org.codequistify.master.virtualworkspace.presentation.dto.VirtualWorkspaceConnectionResponse;
 import org.codequistify.master.virtualworkspace.presentation.dto.VirtualWorkspaceStatusResponse;
 import org.codequistify.master.virtualworkspace.presentation.dto.VirtualWorkspaceSummaryResponse;
@@ -36,7 +36,7 @@ public class VirtualWorkspaceService {
   private final Logger logger = LoggerFactory.getLogger(VirtualWorkspaceService.class);
 
   private final VirtualWorkspaceRepository virtualWorkspaceRepository;
-  private final VirtualWorkspaceRuntimeService virtualWorkspaceRuntimeService;
+  private final VirtualWorkspaceClient virtualWorkspaceClient;
   private final StageSearchService stageSearchService;
 
   public VirtualWorkspaceConnectionResponse recreate(String stageCode, Player player) {
@@ -62,10 +62,10 @@ public class VirtualWorkspaceService {
     virtualWorkspaceRepository.save(creating);
 
     try {
-      existing.map(VirtualWorkspace::publicId).ifPresent(virtualWorkspaceRuntimeService::deprovisionSync);
+      existing.map(VirtualWorkspace::publicId).ifPresent(virtualWorkspaceClient::deprovisionSync);
 
-      virtualWorkspaceRuntimeService.provision(creating);
-      virtualWorkspaceRuntimeService.waitUntilReady(newPublicId);
+      virtualWorkspaceClient.provision(creating);
+      virtualWorkspaceClient.waitUntilReady(newPublicId);
     } catch (RuntimeException e) {
       throw new BusinessException(
           ErrorCode.VIRTUAL_WORKSPACE_CREATE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR, e);
@@ -104,7 +104,7 @@ public class VirtualWorkspaceService {
     return virtualWorkspaceRepository
         .findById(workspaceId)
         .map(workspace -> {
-          boolean exists = virtualWorkspaceRuntimeService.exists(workspace.publicId());
+          boolean exists = virtualWorkspaceClient.exists(workspace.publicId());
           String status = workspace.lifecycle().status().name();
           return VirtualWorkspaceStatusResponse.of(workspace.publicId().value(), status, exists);
         })
