@@ -29,8 +29,8 @@ class NicknameTest {
   }
 
   @Test
-  void 길이가_50자를_초과한_닉네임을_생성하면_예외가_발생해야한다() {
-    String tooLong = "a".repeat(51);
+  void 길이가_10자를_초과한_닉네임을_생성하면_예외가_발생해야한다() {
+    String tooLong = "01234567890";
     assertThrows(IllegalArgumentException.class, () -> new Nickname(tooLong));
   }
 }
