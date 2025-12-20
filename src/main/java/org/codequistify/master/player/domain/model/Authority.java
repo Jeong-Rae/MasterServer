@@ -1,36 +1,32 @@
 package org.codequistify.master.player.domain.model;
 
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.codequistify.master.player.domain.vo.Permission;
 import org.codequistify.master.player.domain.vo.PlayerId;
 import org.codequistify.master.player.domain.vo.Role;
 
 public class Authority {
   private final PlayerId playerId;
-  private final EnumSet<Role> roles;
-  private final EnumSet<Permission> permissions;
+  private final Roles roles;
+  private final Permissions permissions;
 
-  public Authority(PlayerId playerId, Set<Role> roles, Set<Permission> permissions) {
+  public Authority(PlayerId playerId, Roles roles, Permissions permissions) {
     this.playerId = Objects.requireNonNull(playerId, "playerId must not be null");
-    this.roles = EnumSet.copyOf(Objects.requireNonNull(roles, "roles must not be null"));
-    this.permissions =
-        EnumSet.copyOf(Objects.requireNonNull(permissions, "permissions must not be null"));
+    this.roles = Objects.requireNonNull(roles, "roles must not be null");
+    this.permissions = Objects.requireNonNull(permissions, "permissions must not be null");
   }
 
   public PlayerId playerId() {
     return playerId;
   }
 
-  public EnumSet<Role> roles() {
-    return EnumSet.copyOf(roles);
+  public Roles roles() {
+    return roles;
   }
 
-  public EnumSet<Permission> permissions() {
-    return EnumSet.copyOf(permissions);
+  public Permissions permissions() {
+    return permissions;
   }
 
   public boolean isAdmin() {
@@ -42,26 +38,26 @@ public class Authority {
   }
 
   public void grantRole(Role role) {
-    roles.add(Objects.requireNonNull(role, "role must not be null"));
+    roles.grant(role);
   }
 
   public void revokeRole(Role role) {
-    roles.remove(Objects.requireNonNull(role, "role must not be null"));
+    roles.revoke(role);
   }
 
   public void grantPermission(Permission permission) {
-    permissions.add(Objects.requireNonNull(permission, "permission must not be null"));
+    permissions.grant(permission);
   }
 
   public void revokePermission(Permission permission) {
-    permissions.remove(Objects.requireNonNull(permission, "permission must not be null"));
+    permissions.revoke(permission);
   }
 
   public List<String> roleAuthorities() {
-    return roles.stream().map(Role::authority).collect(Collectors.toList());
+    return roles.authorities();
   }
 
   public List<String> permissionAuthorities() {
-    return permissions.stream().map(Permission::authority).collect(Collectors.toList());
+    return permissions.authorities();
   }
 }

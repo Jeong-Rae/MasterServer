@@ -7,6 +7,8 @@ import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.player.application.port.AuthorityRepository;
 import org.codequistify.master.player.domain.model.Authority;
+import org.codequistify.master.player.domain.model.Permissions;
+import org.codequistify.master.player.domain.model.Roles;
 import org.codequistify.master.player.domain.vo.Permission;
 import org.codequistify.master.player.domain.vo.PlayerId;
 import org.codequistify.master.player.domain.vo.Role;
@@ -22,7 +24,8 @@ public class AuthorityCommandService {
   @Transactional
   public Authority createAuthority(
       UUID playerUuid, EnumSet<Role> roles, EnumSet<Permission> permissions) {
-    return authorityRepository.save(new Authority(PlayerId.of(playerUuid), roles, permissions));
+    return authorityRepository.save(
+        new Authority(PlayerId.of(playerUuid), Roles.from(roles), Permissions.from(permissions)));
   }
 
   @Transactional

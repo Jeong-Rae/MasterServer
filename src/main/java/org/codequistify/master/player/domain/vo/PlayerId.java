@@ -16,4 +16,8 @@ public record PlayerId(UUID value) {
   public static PlayerId of(UUID value) {
     return new PlayerId(value);
   }
+
+  public static PlayerId from(String value) {
+    return new PlayerId(UUID.fromString(value));
+  }
 }

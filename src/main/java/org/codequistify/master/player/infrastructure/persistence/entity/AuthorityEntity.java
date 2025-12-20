@@ -10,7 +10,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
-import java.util.EnumSet;
 import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -19,6 +18,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.codequistify.master.global.util.BaseTimeEntity;
 import org.codequistify.master.player.domain.model.Authority;
+import org.codequistify.master.player.domain.model.Permissions;
+import org.codequistify.master.player.domain.model.Roles;
 import org.codequistify.master.player.domain.vo.Permission;
 import org.codequistify.master.player.domain.vo.PlayerId;
 import org.codequistify.master.player.domain.vo.Role;
@@ -31,8 +32,8 @@ import org.codequistify.master.player.domain.vo.Role;
 @Table(name = "player_authority")
 public class AuthorityEntity extends BaseTimeEntity {
   @Id
-  @Column(name = "player_uuid", nullable = false, columnDefinition = "char(36)")
-  private UUID playerUuid;
+  @Column(name = "player_id", nullable = false, columnDefinition = "char(36)")
+  private UUID playerId;
 
   @ElementCollection(fetch = FetchType.EAGER)
   @CollectionTable(name = "player_authority_role", joinColumns = @JoinColumn(name = "player_uuid"))
@@ -50,27 +51,14 @@ public class AuthorityEntity extends BaseTimeEntity {
 
   public static AuthorityEntity from(Authority authority) {
     return AuthorityEntity.builder()
-        .playerUuid(authority.playerId().value())
-        .roles(EnumSet.copyOf(authority.roles()))
-        .permissions(EnumSet.copyOf(authority.permissions()))
+        .playerId(authority.playerId().value())
+        .roles(authority.roles().asSet())
+        .permissions(authority.permissions().asSet())
         .build();
   }
 
   public Authority toDomain() {
-    return new Authority(PlayerId.of(playerUuid), toRoleSet(roles), toPermissionSet(permissions));
-  }
-
-  private EnumSet<Role> toRoleSet(Set<Role> roles) {
-    if (roles == null || roles.isEmpty()) {
-      return EnumSet.noneOf(Role.class);
-    }
-    return EnumSet.copyOf(roles);
-  }
-
-  private EnumSet<Permission> toPermissionSet(Set<Permission> permissions) {
-    if (permissions == null || permissions.isEmpty()) {
-      return EnumSet.noneOf(Permission.class);
-    }
-    return EnumSet.copyOf(permissions);
+    return new Authority(
+        PlayerId.of(playerId), Roles.fromNullable(roles), Permissions.fromNullable(permissions));
   }
 }

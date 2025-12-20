@@ -22,20 +22,20 @@ import org.codequistify.master.player.domain.vo.Point;
 @Table(name = "player_rating")
 public class RatingEntity extends BaseTimeEntity {
   @Id
-  @Column(name = "player_uuid", nullable = false, columnDefinition = "char(36)")
-  private UUID playerUuid;
+  @Column(name = "player_id", nullable = false, columnDefinition = "char(36)")
+  private UUID playerId;
 
   @Column(name = "point", nullable = false)
   private long point;
 
   public static RatingEntity from(Rating rating) {
     return RatingEntity.builder()
-        .playerUuid(rating.playerId().value())
+        .playerId(rating.playerId().value())
         .point(rating.point().value())
         .build();
   }
 
   public Rating toDomain() {
-    return new Rating(PlayerId.of(playerUuid), new Point(point));
+    return new Rating(PlayerId.of(playerId), new Point(point));
   }
 }

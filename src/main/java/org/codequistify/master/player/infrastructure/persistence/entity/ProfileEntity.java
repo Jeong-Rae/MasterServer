@@ -26,20 +26,20 @@ import org.codequistify.master.player.domain.vo.PlayerId;
     })
 public class ProfileEntity extends BaseTimeEntity {
   @Id
-  @Column(name = "player_uuid", nullable = false, columnDefinition = "char(36)")
-  private UUID playerUuid;
+  @Column(name = "player_id", nullable = false, columnDefinition = "char(36)")
+  private UUID playerId;
 
   @Column(name = "nickname", nullable = false, unique = true, length = 50)
   private String nickname;
 
   public static ProfileEntity from(Profile profile) {
     return ProfileEntity.builder()
-        .playerUuid(profile.playerId().value())
+        .playerId(profile.playerId().value())
         .nickname(profile.nickname().value())
         .build();
   }
 
   public Profile toDomain() {
-    return new Profile(PlayerId.of(playerUuid), new Nickname(nickname));
+    return new Profile(PlayerId.of(playerId), new Nickname(nickname));
   }
 }

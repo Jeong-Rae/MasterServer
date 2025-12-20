@@ -13,7 +13,9 @@ class AuthorityTest {
   @Test
   void adminBypassesPermissionCheck() {
     Authority authority = new Authority(
-        PlayerId.of(UUID.randomUUID()), EnumSet.of(Role.ADMIN), EnumSet.noneOf(Permission.class));
+        PlayerId.of(UUID.randomUUID()),
+        Roles.from(EnumSet.of(Role.ADMIN)),
+        Permissions.from(EnumSet.noneOf(Permission.class)));
 
     assertTrue(authority.hasPermission(Permission.MOCK_TESTS_ACCESS));
   }
