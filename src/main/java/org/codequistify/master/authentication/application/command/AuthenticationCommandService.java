@@ -20,6 +20,7 @@ import org.codequistify.master.authentication.domain.vo.PasswordHash;
 import org.codequistify.master.authentication.domain.vo.SessionId;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
+import org.codequistify.master.player.domain.vo.Nickname;
 import org.codequistify.master.player.domain.vo.PlayerId;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -39,7 +40,7 @@ public class AuthenticationCommandService {
 
   @Transactional
   public AuthenticationView registerLocal(String emailValue, String password, String nickname) {
-    ensureNicknameValid(nickname);
+    Nickname nicknameVo = new Nickname(nickname);
     Email email = Email.of(emailValue);
     ensureEmailAvailable(email);
 
@@ -49,7 +50,7 @@ public class AuthenticationCommandService {
         registrationDomainService.registerLocal(playerId, email, passwordHash);
 
     authenticationAccountRepository.save(account);
-    playerRegistrationPort.registerNewPlayer(playerId, nickname);
+    playerRegistrationPort.registerNewPlayer(playerId, nicknameVo);
 
     AuthorizationView authorizationView = authorityQueryPort.getAuthorizationView(playerId);
     IssuedTokens tokens = issueNewTokens(playerId, authorizationView);
@@ -84,13 +85,13 @@ public class AuthenticationCommandService {
   @Transactional
   public AuthenticationView loginOAuth(
       OAuthProvider provider, String authorizationCode, String nicknameCandidate) {
-    ensureNicknameValid(nicknameCandidate);
+    Nickname nicknameVo = new Nickname(nicknameCandidate);
     OAuthSubjectResolver.OAuthSubject subject =
         oAuthSubjectResolver.resolve(provider, authorizationCode);
 
     AuthenticationAccount account = authenticationAccountRepository
         .findByOAuth(provider, subject.subject())
-        .orElseGet(() -> registerOAuthAccount(subject, provider, nicknameCandidate));
+        .orElseGet(() -> registerOAuthAccount(subject, provider, nicknameVo));
 
     PlayerId playerId = account.playerId();
     AuthorizationView authorizationView = authorityQueryPort.getAuthorizationView(playerId);
@@ -138,14 +139,14 @@ public class AuthenticationCommandService {
   }
 
   private AuthenticationAccount registerOAuthAccount(
-      OAuthSubjectResolver.OAuthSubject subject, OAuthProvider provider, String nicknameCandidate) {
+      OAuthSubjectResolver.OAuthSubject subject, OAuthProvider provider, Nickname nickname) {
     PlayerId playerId = PlayerId.generate();
     AuthenticationAccount account = registrationDomainService.registerOAuth(
         playerId, subject.email(), provider, subject.subject());
 
     authenticationAccountRepository.save(account);
 
-    playerRegistrationPort.registerNewPlayer(playerId, nicknameCandidate);
+    playerRegistrationPort.registerNewPlayer(playerId, nickname);
 
     return account;
   }
@@ -163,9 +164,4 @@ public class AuthenticationCommandService {
     return tokens;
   }
 
-  private void ensureNicknameValid(String nickname) {
-    if (nickname == null || nickname.isBlank()) {
-      throw new BusinessException(ErrorCode.INVALID_NICKNAME, HttpStatus.BAD_REQUEST);
-    }
-  }
 }
