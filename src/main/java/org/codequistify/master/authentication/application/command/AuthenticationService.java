@@ -28,11 +28,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class AuthenticationCommandService {
+public class AuthenticationService {
   private final AuthenticationAccountRepository authenticationAccountRepository;
   private final SessionRepository sessionRepository;
   private final PasswordHasher passwordHasher;
   private final RegistrationDomainService registrationDomainService;
+  private final EmailVerificationService emailVerificationService;
   private final OAuthSubjectResolver oAuthSubjectResolver;
   private final PlayerRegistrationPort playerRegistrationPort;
   private final AuthorityQueryPort authorityQueryPort;
@@ -41,8 +42,8 @@ public class AuthenticationCommandService {
   @Transactional
   public AuthenticationView registerLocal(String emailValue, String password, String nickname) {
     Nickname nicknameVo = new Nickname(nickname);
+    emailVerificationService.ensureRegistrationEmailAvailable(emailValue);
     Email email = Email.of(emailValue);
-    ensureEmailAvailable(email);
 
     PlayerId playerId = PlayerId.generate();
     PasswordHash passwordHash = passwordHasher.hash(password);
@@ -132,12 +133,6 @@ public class AuthenticationCommandService {
     sessionRepository.deleteBySessionId(session.sessionId());
   }
 
-  private void ensureEmailAvailable(Email email) {
-    if (authenticationAccountRepository.existsByEmail(email)) {
-      throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
-    }
-  }
-
   private AuthenticationAccount registerOAuthAccount(
       OAuthSubjectResolver.OAuthSubject subject, OAuthProvider provider, Nickname nickname) {
     PlayerId playerId = PlayerId.generate();
@@ -163,5 +158,4 @@ public class AuthenticationCommandService {
     sessionRepository.save(session);
     return tokens;
   }
-
 }

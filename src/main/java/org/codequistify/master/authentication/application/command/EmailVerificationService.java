@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class EmailVerificationCommandService {
+public class EmailVerificationService {
   private static final String EMPTY_CODE = "";
 
   private final EmailVerificationRepository emailVerificationRepository;
@@ -51,6 +51,11 @@ public class EmailVerificationCommandService {
     verification.verify();
     verification.markAsUsed();
     emailVerificationRepository.save(verification);
+  }
+
+  public void ensureRegistrationEmailAvailable(String emailValue) {
+    Email email = Email.of(emailValue);
+    validateEmailByType(email, EmailVerificationType.REGISTRATION);
   }
 
   private void validateEmailByType(Email email, EmailVerificationType type) {

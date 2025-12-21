@@ -2,7 +2,7 @@ package org.codequistify.master.authentication.presentation;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.authentication.application.command.EmailVerificationCommandService;
+import org.codequistify.master.authentication.application.command.EmailVerificationService;
 import org.codequistify.master.authentication.presentation.dto.EmailVerificationConfirmRequest;
 import org.codequistify.master.authentication.presentation.dto.EmailVerificationRequest;
 import org.codequistify.master.authentication.presentation.dto.EmailVerificationResponse;
@@ -17,19 +17,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth/email")
 public class EmailVerificationController {
-  private final EmailVerificationCommandService emailVerificationCommandService;
+  private final EmailVerificationService emailVerificationService;
 
   @PostMapping("/verification")
   public ResponseEntity<Void> sendVerification(
       @Valid @RequestBody EmailVerificationRequest request) {
-    emailVerificationCommandService.sendVerificationMail(request.email(), request.type());
+    emailVerificationService.sendVerificationMail(request.email(), request.type());
     return ResponseEntity.status(HttpStatus.OK).build();
   }
 
   @PostMapping("/verify")
   public ResponseEntity<EmailVerificationResponse> verify(
       @Valid @RequestBody EmailVerificationConfirmRequest request) {
-    emailVerificationCommandService.verify(request.email(), request.code(), request.type());
+    emailVerificationService.verify(request.email(), request.code(), request.type());
     return ResponseEntity.status(HttpStatus.OK).body(EmailVerificationResponse.of(true));
   }
 }
