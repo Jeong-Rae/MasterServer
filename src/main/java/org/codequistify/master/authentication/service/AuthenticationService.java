@@ -1,5 +1,6 @@
 package org.codequistify.master.domain.authentication.service;
 
+import com.vane.badwordfiltering.BadWordFiltering;
 import io.jsonwebtoken.Claims;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -7,10 +8,11 @@ import org.codequistify.master.domain.authentication.dto.LogInRequest;
 import org.codequistify.master.domain.authentication.dto.SignUpRequest;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.domain.authentication.OAuthType;
-import org.codequistify.master.domain.player.domain.vo.EncodedPassword;
 import org.codequistify.master.domain.player.domain.vo.OAuthAccessToken;
+import org.codequistify.master.domain.player.domain.vo.PlayerName;
 import org.codequistify.master.domain.player.domain.vo.RawPassword;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
+import org.codequistify.master.domain.player.security.HashPasswordEncoder;
 import org.codequistify.master.domain.player.security.PlayerDetailsService;
 import org.codequistify.master.domain.player.service.PlayerProfileService;
 import org.codequistify.master.global.aspect.LogExecutionTime;
@@ -24,7 +26,6 @@ import org.codequistify.master.global.jwt.dto.TokenResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -40,9 +41,9 @@ public class AuthenticationService {
     private final PlayerProfileService playerProfileService;
     private final EmailVerificationService emailVerificationService;
 
-    private final PlayerValidator playerValidator;
+    private final BadWordFiltering badWordFiltering;
     private final TokenProvider tokenProvider;
-    private final PasswordEncoder passwordEncoder;
+    private final HashPasswordEncoder hashPasswordEncoder;
     private final Logger LOGGER = LoggerFactory.getLogger(AuthenticationService.class);
 
     @Transactional
@@ -58,22 +59,32 @@ public class AuthenticationService {
                     LOGGER.info("[signUp] {} Email: {}", ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH.getMessage(), request.email());
                     throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH, HttpStatus.BAD_REQUEST, authType.name());
                 });
-        if (!playerValidator.isValidPassword(request.password())) {
+        RawPassword rawPassword;
+        try {
+            rawPassword = RawPassword.middleLevel(request.password());
+        } catch (IllegalArgumentException exception) {
             LOGGER.info("[signUp] {}", ErrorCode.PASSWORD_POLICY_VIOLATION.getCode());
             throw new BusinessException(ErrorCode.PASSWORD_POLICY_VIOLATION, HttpStatus.BAD_REQUEST);
         }
-        if (!playerValidator.isValidName(request.name())) {
+
+        PlayerName playerName;
+        try {
+            playerName = new PlayerName(request.name());
+            if (badWordFiltering.check(playerName.value())) {
+                throw new IllegalArgumentException("player name contains profanity");
+            }
+        } catch (IllegalArgumentException exception) {
             LOGGER.info("[signUp] {}, Name: {}", ErrorCode.PROFANITY_IN_NAME.getCode(), request.name());
             throw new BusinessException(ErrorCode.PROFANITY_IN_NAME, HttpStatus.BAD_REQUEST);
         }
-        if (playerProfileService.isDuplicatedName(request.name())) {
-            LOGGER.info("[signUp] {}, Name: {}", ErrorCode.DUPLICATE_NAME.getCode(), request.name());
+
+        if (playerProfileService.isDuplicatedName(playerName.value())) {
+            LOGGER.info("[signUp] {}, Name: {}", ErrorCode.DUPLICATE_NAME.getCode(), playerName.value());
             throw new BusinessException(ErrorCode.DUPLICATE_NAME, HttpStatus.BAD_REQUEST);
         }
 
-        Player player = request.toPlayer();
-
-        player = player.withEncodedPassword(new EncodedPassword(passwordEncoder.encode(player.authentication().encodedPassword().value())));
+        Player player = request.toPlayer()
+                .withHashedPassword(hashPasswordEncoder.encode(rawPassword));
         player = playerDetailsService.save(player);
 
         LOGGER.info("[signUp] Player: {}, 회원가입 완료", player.id().value());
@@ -91,7 +102,7 @@ public class AuthenticationService {
             throw new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
         }
 
-        if (!passwordEncoder.matches(request.password(), player.authentication().encodedPassword().value())) {
+        if (!playerDetailsService.matchesPassword(request.password(), player)) {
             throw new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
         }
 
@@ -176,4 +187,5 @@ public class AuthenticationService {
 
         return new TokenInfo(aud, roles, iat, exp, iss, valid);
     }
+
 }

@@ -6,7 +6,7 @@ import org.codequistify.master.domain.player.domain.authentication.OAuthType;
 import org.codequistify.master.domain.player.domain.authentication.PlayerAuthentication;
 import org.codequistify.master.domain.player.domain.authorization.PlayerAuthorization;
 import org.codequistify.master.domain.player.domain.profile.PlayerProfile;
-import org.codequistify.master.domain.player.domain.vo.EncodedPassword;
+import org.codequistify.master.domain.player.domain.vo.HashedPassword;
 import org.codequistify.master.domain.player.domain.vo.PlayerEmail;
 import org.codequistify.master.domain.player.domain.vo.PlayerExperience;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
@@ -28,7 +28,7 @@ public record OAuthData(
                         new PlayerEmail(resource.email()),
                         new PlayerExperience(0)),
                 new PlayerAuthentication(
-                        new EncodedPassword(""),
+                        new HashedPassword(""),
                         OAuthIdentity.of(oAuthType, resource.id()),
                         null,
                         null),

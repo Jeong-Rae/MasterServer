@@ -19,7 +19,7 @@ public class PlayerPersistenceMapper {
                         new PlayerEmail(entity.getEmail()),
                         new PlayerExperience(entity.getExp() == null ? 0 : entity.getExp())),
                 new PlayerAuthentication(
-                        new EncodedPassword(entity.getPassword()),
+                        new HashedPassword(entity.getPassword()),
                         OAuthIdentity.of(entity.getOAuthType(), entity.getOAuthId()),
                         new RefreshToken(entity.getRefreshToken()),
                         new OAuthAccessToken(entity.getOAuthAccessToken())),
@@ -32,7 +32,7 @@ public class PlayerPersistenceMapper {
                 .id(player.id().value())
                 .name(player.profile().name().value())
                 .email(player.profile().email().value())
-                .password(player.authentication().encodedPassword().value())
+                .password(player.authentication().hashedPassword().value())
                 .oAuthType(player.authentication().oauthIdentity().type())
                 .oAuthId(player.authentication().oauthIdentity().id())
                 .roles(player.authorization().toStoredAuthorities())

@@ -9,7 +9,7 @@ public class PlayerPrincipalMapper {
         return new PlayerPrincipal(
                 player.id().value(),
                 player.profile().email().value(),
-                player.authentication().encodedPassword().value(),
+                player.authentication().hashedPassword().value(),
                 player.authorization().roles(),
                 player.authorization().accesses(),
                 player.status().locked());

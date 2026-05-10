@@ -8,37 +8,37 @@ import org.codequistify.master.domain.player.domain.authorization.PlayerAuthoriz
 import org.codequistify.master.domain.player.domain.authorization.PlayerRoleType;
 import org.codequistify.master.domain.player.domain.authorization.PlayerRoles;
 import org.codequistify.master.domain.player.domain.profile.PlayerProfile;
-import org.codequistify.master.domain.player.domain.vo.EncodedPassword;
+import org.codequistify.master.domain.player.domain.vo.HashedPassword;
 import org.codequistify.master.domain.player.domain.vo.PlayerEmail;
 import org.codequistify.master.domain.player.domain.vo.PlayerExperience;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
 import org.codequistify.master.domain.player.domain.vo.PlayerName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class PlayerPrincipalMapperTest {
 
     private final PlayerPrincipalMapper mapper = new PlayerPrincipalMapper();
 
     @Test
-    void mapsDomainPlayerToSecurityPrincipalOnly() {
+    void 플레이어_도메인을_인증_주체로_변환하면_보안_인증정보만_반환한다() {
         Player player = Player.create(
                 new PlayerId("018f2fcb-7c0a-7cc0-8a2a-111111111111"),
                 new PlayerProfile(new PlayerName("pol"), new PlayerEmail("pol@example.com"), new PlayerExperience(3)),
-                PlayerAuthentication.local(new EncodedPassword("encoded")),
+                PlayerAuthentication.local(new HashedPassword("{bcrypt}encoded")),
                 new PlayerAuthorization(
                         PlayerRoles.of(PlayerRoleType.PLAYER),
                         PlayerAccesses.of(PlayerAccessType.BASIC_PROBLEMS_ACCESS)));
 
         PlayerPrincipal principal = mapper.toPrincipal(player);
 
-        assertEquals(player.id().value(), principal.id());
-        assertEquals(player.profile().email().value(), principal.email());
-        assertEquals(player.authentication().encodedPassword().value(), principal.getPassword());
-        assertEquals(player.id().value(), principal.getUsername());
-        assertTrue(principal.roles().contains(PlayerRoleType.PLAYER));
-        assertTrue(principal.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals(PlayerRoleType.PLAYER.getRole())));
+        assertThat(principal.id()).isEqualTo(player.id().value());
+        assertThat(principal.email()).isEqualTo(player.profile().email().value());
+        assertThat(principal.getPassword()).isEqualTo(player.authentication().hashedPassword().value());
+        assertThat(principal.getUsername()).isEqualTo(player.id().value());
+        assertThat(principal.roles().contains(PlayerRoleType.PLAYER)).isTrue();
+        assertThat(principal.getAuthorities())
+                .anyMatch(authority -> authority.getAuthority().equals(PlayerRoleType.PLAYER.getRole()));
     }
 }
