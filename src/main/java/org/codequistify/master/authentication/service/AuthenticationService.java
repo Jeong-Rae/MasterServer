@@ -5,11 +5,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.authentication.dto.LogInRequest;
 import org.codequistify.master.domain.authentication.dto.SignUpRequest;
-import org.codequistify.master.domain.player.converter.PlayerConverter;
-import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.domain.authentication.OAuthType;
+import org.codequistify.master.domain.player.domain.vo.EncodedPassword;
+import org.codequistify.master.domain.player.domain.vo.OAuthAccessToken;
+import org.codequistify.master.domain.player.domain.vo.RawPassword;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
-import org.codequistify.master.domain.player.service.PlayerDetailsService;
+import org.codequistify.master.domain.player.security.PlayerDetailsService;
 import org.codequistify.master.domain.player.service.PlayerProfileService;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
@@ -39,7 +41,6 @@ public class AuthenticationService {
     private final EmailVerificationService emailVerificationService;
 
     private final PlayerValidator playerValidator;
-    private final PlayerConverter playerConverter;
     private final TokenProvider tokenProvider;
     private final PasswordEncoder passwordEncoder;
     private final Logger LOGGER = LoggerFactory.getLogger(AuthenticationService.class);
@@ -70,14 +71,14 @@ public class AuthenticationService {
             throw new BusinessException(ErrorCode.DUPLICATE_NAME, HttpStatus.BAD_REQUEST);
         }
 
-        Player player = playerConverter.convert(request);
+        Player player = request.toPlayer();
 
-        player.encodePassword(passwordEncoder);
+        player = player.withEncodedPassword(new EncodedPassword(passwordEncoder.encode(player.authentication().encodedPassword().value())));
         player = playerDetailsService.save(player);
 
-        LOGGER.info("[signUp] Player: {}, 회원가입 완료", player.getUid());
+        LOGGER.info("[signUp] Player: {}, 회원가입 완료", player.id().value());
 
-        return playerConverter.convert(player);
+        return PlayerProfile.from(player);
     }
 
     @Transactional
@@ -90,22 +91,22 @@ public class AuthenticationService {
             throw new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
         }
 
-        if (!player.decodePassword(request.password(), passwordEncoder)) {
+        if (!passwordEncoder.matches(request.password(), player.authentication().encodedPassword().value())) {
             throw new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
         }
 
-        return playerConverter.convert(player);
+        return PlayerProfile.from(player);
     }
 
     @Transactional
     @LogMonitoring
     public void logOut(Player player) {
-        if (player.getOAuthAccessToken() != null && !player.getOAuthAccessToken().isBlank()) {
-            revokeTokenForGoogle(player.getOAuthAccessToken());
-            player.clearOAuthAccessToken();
+        if (!player.authentication().oauthAccessToken().isBlank()) {
+            revokeTokenForGoogle(player.authentication().oauthAccessToken().value());
+            player = player.clearOAuthAccessToken();
         }
 
-        player.clearRefreshToken();
+        player = player.clearRefreshToken();
 
         playerDetailsService.save(player);
     }
@@ -133,23 +134,23 @@ public class AuthenticationService {
     }
 
     @LogMonitoring
-    public void updateRefreshToken(String uid, String refreshToken) {
-        LOGGER.info("[updateRefreshToken] {}", uid);
-        playerDetailsService.updateRefreshToken(uid, refreshToken);
+    public void updateRefreshToken(String id, String refreshToken) {
+        LOGGER.info("[updateRefreshToken] {}", id);
+        playerDetailsService.updateRefreshToken(id, refreshToken);
     }
 
     @LogMonitoring
     public TokenResponse regenerateAccessToken(TokenRequest request) {
-        String uid = tokenProvider.getAudience(request.refreshToken());
+        String id = tokenProvider.getAudience(request.refreshToken());
         Player player;
         try {
-            player = playerDetailsService.findOnePlayerByUid(uid);
+            player = playerDetailsService.findOnePlayerById(id);
         } catch (BusinessException exception) {
             throw new BusinessException(ErrorCode.INVALID_TOKEN, HttpStatus.UNAUTHORIZED);
         }
 
         String accessToken = "";
-        if (player.getRefreshToken().equals(request.refreshToken())) {
+        if (player.authentication().refreshToken().value().equals(request.refreshToken())) {
             accessToken = tokenProvider.generateAccessToken(player);
         }
 

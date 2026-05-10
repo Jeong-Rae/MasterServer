@@ -5,11 +5,11 @@ import org.codequistify.master.domain.authentication.service.SocialSignService;
 import org.codequistify.master.domain.authentication.vo.OAuthData;
 import org.codequistify.master.domain.authentication.vo.OAuthResource;
 import org.codequistify.master.domain.authentication.vo.OAuthToken;
-import org.codequistify.master.domain.player.converter.PlayerConverter;
-import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.domain.authentication.OAuthType;
+import org.codequistify.master.domain.player.domain.vo.OAuthAccessToken;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
-import org.codequistify.master.domain.player.service.PlayerDetailsService;
+import org.codequistify.master.domain.player.security.PlayerDetailsService;
 import org.codequistify.master.global.aspect.LogMethodInvocation;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.config.OAuthKey;
@@ -36,7 +36,6 @@ public class GithubSocialSignService implements SocialSignService {
     private final PlayerDetailsService playerDetailsService;
     private final RestTemplate restTemplate;
 
-    private final PlayerConverter playerConverter;
     private final Logger LOGGER = LoggerFactory.getLogger(GithubSocialSignService.class);
     private final OAuthKey oAuthKey;
 
@@ -69,12 +68,12 @@ public class GithubSocialSignService implements SocialSignService {
 
         Player player = playerDetailsService.findOnePlayerByEmail(oAuthData.resource().email());
 
-        player.updateOAuthAccessToken(oAuthData.token().access_token());
+        player = player.updateOAuthAccessToken(new OAuthAccessToken(oAuthData.token().access_token()));
 
         playerDetailsService.save(player);
 
-        PlayerProfile response = playerConverter.convert(player);
-        LOGGER.info("[socialLogin] 깃허브 로그인, Player: {}", player.getUsername());
+        PlayerProfile response = PlayerProfile.from(player);
+        LOGGER.info("[socialLogin] 깃허브 로그인, Player: {}", player.id().value());
 
         return response;
     }
@@ -83,14 +82,7 @@ public class GithubSocialSignService implements SocialSignService {
     @LogMonitoring
     @Transactional
     public Player socialSignUp(OAuthData oAuthData) {
-        Player player = Player.builder()
-                .name(oAuthData.resource().name())
-                .email(oAuthData.resource().email())
-                .oAuthType(OAuthType.GITHUB)
-                .oAuthId(oAuthData.resource().id())
-                .locked(false)
-                .exp(0)
-                .build();
+        Player player = oAuthData.toPlayer(OAuthType.GITHUB);
         player = playerDetailsService.save(player);
         LOGGER.info("[socialSignUp] 신규 깃허브 사용자 등록, Player: {}", oAuthData.resource().email());
         return player;

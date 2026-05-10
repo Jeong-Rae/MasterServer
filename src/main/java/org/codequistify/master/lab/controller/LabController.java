@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.lab.dto.PShellCreateResponse;
 import org.codequistify.master.domain.lab.dto.PShellExistsResponse;
 import org.codequistify.master.domain.lab.service.LabService;
-import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.security.PlayerPrincipal;
 import org.codequistify.master.domain.stage.domain.Stage;
 import org.codequistify.master.domain.stage.service.impl.StageSearchServiceImpl;
 import org.codequistify.master.global.aspect.LogExecutionTime;
@@ -49,26 +49,26 @@ public class LabController {
     )
     @LogMonitoring
     @PostMapping("lab/terminal/stage/{stage_id}")
-    public ResponseEntity<PShellCreateResponse> applyPShell(@AuthenticationPrincipal Player player,
+    public ResponseEntity<PShellCreateResponse> applyPShell(@AuthenticationPrincipal PlayerPrincipal principal,
                                                             @PathVariable(name = "stage_id") Long stageId) {
-        ReentrantLock lock = lockManager.getLock(player.getId(), stageId);
+        ReentrantLock lock = lockManager.getLock(principal.id(), stageId);
         if (lock.tryLock()) {
             try {
                 Stage stage = stageSearchService.getStageById(stageId);
 
-                labService.deleteSyncStageOnKubernetes(player, stage); // 동기 삭제
-                labService.createStageOnKubernetes(player, stage);
+                labService.deleteSyncStageOnKubernetes(principal, stage); // 동기 삭제
+                labService.createStageOnKubernetes(principal, stage);
 
                 PShellCreateResponse response = PShellCreateResponse
-                        .of(LAB_HOST, player.getUid(), stage.getStageImage().name().toLowerCase());
+                        .of(LAB_HOST, principal.id(), stage.getStageImage().name().toLowerCase());
 
-                labService.waitForPodReadiness(player, stage);
+                labService.waitForPodReadiness(principal, stage);
 
                 return ResponseEntity
                         .status(HttpStatus.OK)
                         .body(response);
             } finally {
-                lockManager.unlock(player.getId(), stageId);
+                lockManager.unlock(principal.id(), stageId);
             }
         }
 
@@ -91,12 +91,12 @@ public class LabController {
     )
     @GetMapping("lab/terminal/access-url/{stage_id}")
     @LogMonitoring
-    public ResponseEntity<PShellCreateResponse> getPShellAccessUrl(@AuthenticationPrincipal Player player,
+    public ResponseEntity<PShellCreateResponse> getPShellAccessUrl(@AuthenticationPrincipal PlayerPrincipal principal,
                                                                    @PathVariable(name = "stage_id") Long stageId) {
         Stage stage = stageSearchService.getStageById(stageId);
 
         PShellCreateResponse response = PShellCreateResponse
-                .of(LAB_HOST, player.getUid(), stage.getStageImage().name().toLowerCase());
+                .of(LAB_HOST, principal.id(), stage.getStageImage().name().toLowerCase());
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -113,14 +113,14 @@ public class LabController {
     )
     @LogExecutionTime
     @GetMapping("/lab/terminal/existence/{stage_id}")
-    public ResponseEntity<PShellExistsResponse> checkPShellExistence(@AuthenticationPrincipal Player player,
+    public ResponseEntity<PShellExistsResponse> checkPShellExistence(@AuthenticationPrincipal PlayerPrincipal principal,
                                                                      @PathVariable(name = "stage_id") Long stageId) {
         Stage stage = stageSearchService.getStageById(stageId);
 
-        boolean stageExists = labService.existsStageOnKubernetes(player, stage);
+        boolean stageExists = labService.existsStageOnKubernetes(principal, stage);
 
         PShellExistsResponse response = new PShellExistsResponse(
-                player.getUid(),
+                principal.id(),
                 stageId,
                 stage.getStageImage().name(),
                 stageExists

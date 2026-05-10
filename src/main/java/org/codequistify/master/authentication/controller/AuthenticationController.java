@@ -23,7 +23,7 @@ import org.codequistify.master.domain.authentication.service.impl.NaverSocialSig
 import org.codequistify.master.domain.authentication.vo.OAuthData;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
-import org.codequistify.master.domain.player.service.PlayerDetailsService;
+import org.codequistify.master.domain.player.security.PlayerDetailsService;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMethodInvocation;
 import org.codequistify.master.global.aspect.LogMonitoring;
@@ -124,7 +124,7 @@ public class AuthenticationController {
 
         LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
-        LOGGER.info("[socialSignInGoogle] 구글 로그인, Player: {}", playerProfile.uid());
+        LOGGER.info("[socialSignInGoogle] 구글 로그인, Player: {}", playerProfile.id());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
     }
 
@@ -150,7 +150,7 @@ public class AuthenticationController {
 
         LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
-        LOGGER.info("[socialSignInKakao] 카카오 로그인, Player: {}", playerProfile.uid());
+        LOGGER.info("[socialSignInKakao] 카카오 로그인, Player: {}", playerProfile.id());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
     }
 
@@ -176,7 +176,7 @@ public class AuthenticationController {
 
         LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
-        LOGGER.info("[socialSignInNaver] 네이버 로그인, Player: {}", playerProfile.uid());
+        LOGGER.info("[socialSignInNaver] 네이버 로그인, Player: {}", playerProfile.id());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
     }
 
@@ -202,7 +202,7 @@ public class AuthenticationController {
 
         LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
-        LOGGER.info("[socialSignInNaver] 깃허브 로그인, Player: {}", playerProfile.uid());
+        LOGGER.info("[socialSignInNaver] 깃허브 로그인, Player: {}", playerProfile.id());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
     }
 
@@ -237,7 +237,7 @@ public class AuthenticationController {
 
         LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
-        LOGGER.info("[SignUpPOL] pol 회원가입, Player: {}", playerProfile.uid());
+        LOGGER.info("[SignUpPOL] pol 회원가입, Player: {}", playerProfile.id());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
     }
 
@@ -255,7 +255,7 @@ public class AuthenticationController {
 
         LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
-        LOGGER.info("[LogInPOL] pol 로그인, Player: {}", playerProfile.uid());
+        LOGGER.info("[LogInPOL] pol 로그인, Player: {}", playerProfile.id());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
     }
 
@@ -312,12 +312,12 @@ public class AuthenticationController {
     public ResponseEntity<BasicResponse> LogOut(HttpServletRequest request, HttpServletResponse servletResponse) {
         String token = tokenProvider.resolveToken(request);
         String aud = tokenProvider.getAudience(token);
-        Player player = playerDetailsService.findOnePlayerByUid(aud);
+        Player player = playerDetailsService.findOnePlayerById(aud);
         if (player == null) {
             throw new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.UNAUTHORIZED);
         }
         authenticationService.logOut(player);
-        LOGGER.info("[LogOut] Player: {}, 로그아웃 완료", player.getUid());
+        LOGGER.info("[LogOut] Player: {}, 로그아웃 완료", player.id().value());
 
         this.removeTokenFromCookie(servletResponse);
         this.removeTokenFromCookie_DEV(servletResponse);
@@ -429,7 +429,7 @@ public class AuthenticationController {
 
     private TokenResponse generateTokens(PlayerProfile playerProfile) {
         String refreshToken = tokenProvider.generateRefreshToken(playerProfile);
-        authenticationService.updateRefreshToken(playerProfile.uid(), refreshToken); // refresh token db에 저장
+        authenticationService.updateRefreshToken(playerProfile.id(), refreshToken); // refresh token db에 저장
 
         String accessToken = tokenProvider.generateAccessToken(playerProfile);
 

@@ -3,17 +3,16 @@ package org.codequistify.master.domain.player.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.player.converter.PlayerConverter;
-import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.domain.player.dto.PlayerStageProgressResponse;
+import org.codequistify.master.domain.player.security.PlayerDetailsService;
+import org.codequistify.master.domain.player.security.PlayerPrincipal;
 import org.codequistify.master.domain.player.service.PlayerProfileService;
 import org.codequistify.master.domain.stage.domain.CompletedStatus;
 import org.codequistify.master.domain.stage.dto.HeatMapDataPoint;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
-import org.codequistify.master.global.util.BasicResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,16 +24,15 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/players")
-@Tag(name = "Player")
+@Tag(name = "Player Profile")
 public class PlayerProfileController {
     private final PlayerProfileService playerProfileService;
-    private final PlayerConverter playerConverter;
+    private final PlayerDetailsService playerDetailsService;
 
     @LogMonitoring
     @GetMapping("")
     public ResponseEntity<List<PlayerProfile>> getAllPlayerProfiles() {
-        List<PlayerProfile> response =  playerProfileService.findAllPlayerProfiles();
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(playerProfileService.findAllPlayerProfiles());
     }
 
     @LogMonitoring
@@ -43,12 +41,9 @@ public class PlayerProfileController {
             description = "자신의 profile 정보를 응답받는다. 자신이란 현재 소유중인 엑세스 토큰에 기반한다."
     )
     @GetMapping("me/profile")
-    public ResponseEntity<PlayerProfile> getMyProfile(@AuthenticationPrincipal Player player) {
-        PlayerProfile playerProfile = playerConverter.convert(player);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(playerProfile);
+    public ResponseEntity<PlayerProfile> getMyProfile(@AuthenticationPrincipal PlayerPrincipal principal) {
+        PlayerProfile playerProfile = PlayerProfile.from(playerDetailsService.findOnePlayerById(principal.id()));
+        return ResponseEntity.status(HttpStatus.OK).body(playerProfile);
     }
 
     @GetMapping("me/stages")
@@ -58,23 +53,9 @@ public class PlayerProfileController {
                     "*NOT_COMPLETED*는 허용하지 않는다." +
                     " *uri 정보는 현재 제공되지 않는다.*"
     )
-    public ResponseEntity<PlayerStageProgressResponse> getStagesByStatusForPlayer(@AuthenticationPrincipal Player player,
+    public ResponseEntity<PlayerStageProgressResponse> getStagesByStatusForPlayer(@AuthenticationPrincipal PlayerPrincipal principal,
                                                                                   @RequestParam CompletedStatus status) {
-        if (status.equals(CompletedStatus.NOT_COMPLETED)) {
-            throw new BusinessException(ErrorCode.INVALID_SEARCH_CRITERIA, HttpStatus.BAD_REQUEST);
-        }
-
-        PlayerStageProgressResponse response = new PlayerStageProgressResponse(new ArrayList<>());
-        if (status.equals(CompletedStatus.COMPLETED)) {
-            response = playerProfileService.getCompletedStagesByPlayerId(player);
-        }
-        if (status.equals(CompletedStatus.IN_PROGRESS)) {
-            response = playerProfileService.getInProgressStagesByPlayerId(player);
-        }
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(getStagesByStatus(principal, status));
     }
 
     @GetMapping("me/heat-map")
@@ -82,25 +63,20 @@ public class PlayerProfileController {
             summary = "자신의 문제풀이 heatmap 정보 조회",
             description = "자신의 문제풀이 내역에 대한 heatmap 정보를 조회한다"
     )
-    public ResponseEntity<List<HeatMapDataPoint>> getHeatMapPointsForPlayer(@AuthenticationPrincipal Player player) {
-        List<HeatMapDataPoint> response = playerProfileService.getHeatMapDataPointsByModifiedDate(player);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(response);
+    public ResponseEntity<List<HeatMapDataPoint>> getHeatMapPointsForPlayer(@AuthenticationPrincipal PlayerPrincipal principal) {
+        return ResponseEntity.status(HttpStatus.OK).body(playerProfileService.getHeatMapDataPointsByModifiedDate(principal));
     }
 
-    @Operation(
-            summary = "관리자 권한 확인",
-            description = "해당 유저가 관리자 권한을 가지고 있는지 검증합니다.")
-    @LogMonitoring
-    @GetMapping("me/admin")
-    public ResponseEntity<BasicResponse> checkAdminRole(@AuthenticationPrincipal Player player) {
-        Boolean isAdmin = playerProfileService.isAdmin(player);
-
-        BasicResponse response = BasicResponse.of(isAdmin.toString());
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+    private PlayerStageProgressResponse getStagesByStatus(PlayerPrincipal principal, CompletedStatus status) {
+        if (status.equals(CompletedStatus.NOT_COMPLETED)) {
+            throw new BusinessException(ErrorCode.INVALID_SEARCH_CRITERIA, HttpStatus.BAD_REQUEST);
+        }
+        if (status.equals(CompletedStatus.COMPLETED)) {
+            return playerProfileService.getCompletedStagesByPlayerId(principal);
+        }
+        if (status.equals(CompletedStatus.IN_PROGRESS)) {
+            return playerProfileService.getInProgressStagesByPlayerId(principal);
+        }
+        return new PlayerStageProgressResponse(new ArrayList<>());
     }
-
-
 }

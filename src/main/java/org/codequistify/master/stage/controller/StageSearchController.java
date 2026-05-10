@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.security.PlayerPrincipal;
 import org.codequistify.master.domain.stage.convertoer.StageConverter;
 import org.codequistify.master.domain.stage.domain.Stage;
 import org.codequistify.master.domain.stage.dto.QuestionResponse;
@@ -63,9 +63,9 @@ public class StageSearchController {
     )
     @LogExecutionTime
     @GetMapping("stages")
-    public ResponseEntity<StagePageResponse> findAllStagesByCriteria(@AuthenticationPrincipal Player player,
+    public ResponseEntity<StagePageResponse> findAllStagesByCriteria(@AuthenticationPrincipal PlayerPrincipal principal,
                                                                      @Valid @ModelAttribute SearchCriteria searchCriteria) {
-        StagePageResponse stages = stageSearchService.findStagesByCriteria(searchCriteria, player);
+        StagePageResponse stages = stageSearchService.findStagesByCriteria(searchCriteria, principal);
 
         return ResponseEntity.status(HttpStatus.OK).body(stages);
     }

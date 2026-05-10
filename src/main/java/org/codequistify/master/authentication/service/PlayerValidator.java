@@ -18,9 +18,9 @@ public class PlayerValidator {
     private final static Pattern NAME_PATTERN = Pattern.compile(NAME_REGEX);
 
     public boolean isValidName(Player player) {
-        Matcher matcher = NAME_PATTERN.matcher(player.getName());
+        Matcher matcher = NAME_PATTERN.matcher(player.profile().name().value());
         if (matcher.matches()) {
-            return !badWordFiltering.check(player.getName());
+            return !badWordFiltering.check(player.profile().name().value());
         }
         return false;
     }
@@ -33,7 +33,7 @@ public class PlayerValidator {
     }
 
     public boolean isValidPassword(Player player) {
-        Matcher matcher = PASSWORD_PATTERN.matcher(player.getPassword());
+        Matcher matcher = PASSWORD_PATTERN.matcher(player.authentication().encodedPassword().value());
         return matcher.matches();
     }
     public boolean isValidPassword(String password) {

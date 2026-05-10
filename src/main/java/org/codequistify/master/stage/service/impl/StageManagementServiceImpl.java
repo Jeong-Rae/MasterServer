@@ -3,6 +3,8 @@ package org.codequistify.master.domain.stage.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.lab.service.LabAssignmentService;
 import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.security.PlayerDetailsService;
+import org.codequistify.master.domain.player.security.PlayerPrincipal;
 import org.codequistify.master.domain.player.service.PlayerProfileService;
 import org.codequistify.master.domain.stage.convertoer.QuestionConverter;
 import org.codequistify.master.domain.stage.convertoer.StageConverter;
@@ -30,6 +32,7 @@ public class StageManagementServiceImpl implements StageManagementService {
 
     private final LabAssignmentService labAssignmentService;
     private final PlayerProfileService playerProfileService;
+    private final PlayerDetailsService playerDetailsService;
 
     private final StageConverter stageConverter;
     private final QuestionConverter questionConverter;
@@ -47,7 +50,7 @@ public class StageManagementServiceImpl implements StageManagementService {
 
     @Override
     @Transactional
-    public GradingResponse evaluateAnswer(Player player, GradingRequest request) {
+    public GradingResponse evaluateAnswer(PlayerPrincipal principal, GradingRequest request) {
         Question question = questionRepository.findByStageIdAndIndex(request.stageId(), request.questionIndex())
                 .orElseThrow(() -> {
                     LOGGER.info("[checkAnswerCorrectness] {}, id: {}, index: {}",
@@ -58,7 +61,7 @@ public class StageManagementServiceImpl implements StageManagementService {
         boolean isCorrect;
         if (question.getAnswerType().equals(AnswerType.PRACTICAL)) {
             Stage stage = question.getStage();
-            isCorrect = this.evaluatePracticalAnswerCorrectness(player, stage, request);
+            isCorrect = this.evaluatePracticalAnswerCorrectness(principal, stage, request);
         }
         else {
             isCorrect = this.evaluateStandardAnswerCorrectness(question, request);
@@ -86,13 +89,13 @@ public class StageManagementServiceImpl implements StageManagementService {
         return correctAnswer.equalsIgnoreCase(request.answer());
     }
 
-    private boolean evaluatePracticalAnswerCorrectness(Player player, Stage stage, GradingRequest request) {
+    private boolean evaluatePracticalAnswerCorrectness(PlayerPrincipal principal, Stage stage, GradingRequest request) {
         StageActionRequest stageActionRequest = new StageActionRequest(
                 stage.getStageImage().name(),
                 request.questionIndex());
 
         SuccessResponse response = labAssignmentService
-                .sendGradingRequest(stage.getStageImage().name(), player.getUid().toLowerCase(), stageActionRequest)
+                .sendGradingRequest(stage.getStageImage().name(), principal.id().toLowerCase(), stageActionRequest)
                 .getBody();
 
         return response.success();
@@ -101,7 +104,7 @@ public class StageManagementServiceImpl implements StageManagementService {
     // compose 메서드
     @Override
     @Transactional
-    public SuccessResponse composePShell(Player player, GradingRequest request) {
+    public SuccessResponse composePShell(PlayerPrincipal principal, GradingRequest request) {
         Question question = questionRepository.findByStageIdAndIndex(request.stageId(), request.questionIndex())
                 .orElseThrow(() -> {
                     LOGGER.info("[checkAnswerCorrectness] {}, id: {}, index: {}",
@@ -115,7 +118,7 @@ public class StageManagementServiceImpl implements StageManagementService {
                 request.questionIndex());
 
         SuccessResponse response = labAssignmentService
-                .sendComposeRequest(stage.getStageImage().name(), player.getUid().toLowerCase(), stageActionRequest)
+                .sendComposeRequest(stage.getStageImage().name(), principal.id().toLowerCase(), stageActionRequest)
                 .getBody();
 
         return response;
@@ -125,7 +128,8 @@ public class StageManagementServiceImpl implements StageManagementService {
     // 스테이지 클리어 기록
     @Override
     @Transactional
-    public StageCompletionResponse recordStageComplete(Player player, Long stageId) {
+    public StageCompletionResponse recordStageComplete(PlayerPrincipal principal, Long stageId) {
+        Player player = playerDetailsService.findOnePlayerById(principal.id());
         Stage stage = stageRepository.findById(stageId)
                 .orElseThrow(() -> {
                     LOGGER.info("[recordStageComplete] {}}, stage: {}",
@@ -134,15 +138,15 @@ public class StageManagementServiceImpl implements StageManagementService {
                 });
 
         CompletedStage completedStage;
-        if (!completedStageRepository.existsByPlayerIdAndStageId(player.getId(), stageId)) {
+        if (!completedStageRepository.existsByPlayerIdAndStageId(player.id().value(), stageId)) {
             completedStage = CompletedStage.builder()
-                    .player(player)
+                    .playerId(player.id().value())
                     .stage(stage)
                     .status(CompletedStatus.COMPLETED).build();
         }
         else {
             completedStage = completedStageRepository
-                    .findByPlayerIdAndStageId(player.getId(), stageId)
+                    .findByPlayerIdAndStageId(player.id().value(), stageId)
                     .orElseThrow(() -> {
                         LOGGER.info("[updateInProgressStage] {}, stage: {}",
                                 ErrorCode.STAGE_PROGRESS_NOT_FOUND.getMessage(), stageId);
@@ -156,21 +160,21 @@ public class StageManagementServiceImpl implements StageManagementService {
         int updatedExp = playerProfileService.increaseExp(player, stage.getDifficultyLevel().getExp());
 
         StageCompletionResponse response = new StageCompletionResponse(
-                player.getExp(),
-                player.getExp() / LEVEL_STEP_SIZE,
+                player.profile().experience().value(),
+                player.profile().experience().value() / LEVEL_STEP_SIZE,
                 updatedExp,
                 updatedExp / LEVEL_STEP_SIZE
         );
 
-        LOGGER.info("[recordStageComplete] player: {}, {} 클리어", player.getUid(), stageId);
+        LOGGER.info("[recordStageComplete] player: {}, {} 클리어", player.id().value(), stageId);
         return response;
     }
 
 
     @Transactional
-    public void recordInProgressStageInit(Player player, GradingRequest request) {
+    public void recordInProgressStageInit(PlayerPrincipal principal, GradingRequest request) {
         if (completedStageRepository
-                .existsByPlayerIdAndStageId(player.getId(), request.stageId())) {
+                .existsByPlayerIdAndStageId(principal.id(), request.stageId())) {
             return;
         }
 
@@ -182,7 +186,7 @@ public class StageManagementServiceImpl implements StageManagementService {
                 });
 
         CompletedStage completedStage = CompletedStage.builder()
-                .player(player)
+                .playerId(principal.id())
                 .stage(stage)
                 .status(CompletedStatus.IN_PROGRESS).build();
 
@@ -192,9 +196,9 @@ public class StageManagementServiceImpl implements StageManagementService {
     }
 
     @Transactional
-    public void updateInProgressStage(Player player, GradingRequest request) {
+    public void updateInProgressStage(PlayerPrincipal principal, GradingRequest request) {
         CompletedStage completedStage = completedStageRepository
-                .findByPlayerIdAndStageId(player.getId(), request.stageId())
+                .findByPlayerIdAndStageId(principal.id(), request.stageId())
                 .orElseThrow(()->{
                     LOGGER.info("[updateInProgressStage] {}, stage: {}",
                             ErrorCode.STAGE_PROGRESS_NOT_FOUND.getMessage(), request.stageId());

@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.security.PlayerPrincipal;
 import org.codequistify.master.domain.stage.dto.*;
 import org.codequistify.master.domain.stage.service.StageManagementService;
 import org.codequistify.master.global.aspect.LogMonitoring;
@@ -54,15 +54,15 @@ public class StageManagementController {
     )
     @LogMonitoring
     @PostMapping("questions/grading")
-    public ResponseEntity<GradingResponse> submitAnswerForGrading(@AuthenticationPrincipal Player player,
+    public ResponseEntity<GradingResponse> submitAnswerForGrading(@AuthenticationPrincipal PlayerPrincipal principal,
                                                                   @Valid @RequestBody GradingRequest request) {
 
-        GradingResponse response = stageManagementService.evaluateAnswer(player, request);
+        GradingResponse response = stageManagementService.evaluateAnswer(principal, request);
         if (request.questionIndex() == 1) { // 첫문제인 경우 진행 시작 기록
-            stageManagementService.recordInProgressStageInit(player, request);
+            stageManagementService.recordInProgressStageInit(principal, request);
         }
         if (response.isCorrect()) {
-            stageManagementService.updateInProgressStage(player, request);
+            stageManagementService.updateInProgressStage(principal, request);
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }
 
@@ -76,9 +76,9 @@ public class StageManagementController {
     )
     @LogMonitoring
     @PostMapping("question/compose")
-    public ResponseEntity<BasicResponse> compose(@AuthenticationPrincipal Player player,
+    public ResponseEntity<BasicResponse> compose(@AuthenticationPrincipal PlayerPrincipal principal,
                                                  @Valid @RequestBody GradingRequest request) {
-        SuccessResponse successResponse = stageManagementService.composePShell(player, request);
+        SuccessResponse successResponse = stageManagementService.composePShell(principal, request);
 
         if (successResponse.success().equals(false)) {
             throw new BusinessException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -97,11 +97,11 @@ public class StageManagementController {
     )
     @PostMapping("stages/{stage_id}/complete")
     @LogMonitoring
-    public ResponseEntity<StageCompletionResponse> completeStage(@AuthenticationPrincipal Player player,
+    public ResponseEntity<StageCompletionResponse> completeStage(@AuthenticationPrincipal PlayerPrincipal principal,
                                                                  @PathVariable(value = "stage_id") Long stageId,
                                                                  @RequestBody StageCompletionRequest request) {
 
-        StageCompletionResponse response = stageManagementService.recordStageComplete(player, stageId);
+        StageCompletionResponse response = stageManagementService.recordStageComplete(principal, stageId);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

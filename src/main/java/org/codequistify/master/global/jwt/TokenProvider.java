@@ -5,7 +5,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
-import org.codequistify.master.domain.player.domain.PlayerRoleType;
+import org.codequistify.master.domain.player.domain.authorization.PlayerRoleType;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.exception.ErrorCode;
@@ -37,13 +37,6 @@ public class TokenProvider {
     protected void init() {
         KEY = new SecretKeySpec(JWT_SECRET.getBytes(StandardCharsets.UTF_8), SignatureAlgorithm.HS256.getJcaName());
 
-        LOGGER.info("\n{}",generateAccessToken(Player.builder()
-                .name("pol")
-                .email("kr.or.pol@gmail.com")
-                .roles(List.of(PlayerRoleType.SUPER_ADMIN.getRole()))
-                .uid("POL-BDBEej-Gj5AntZprZ")
-                .build()));
-
     }
 
     public String generateAccessToken(PlayerProfile response) {
@@ -53,7 +46,7 @@ public class TokenProvider {
 
         String token = Jwts.builder()
                 .setClaims(claims)
-                .setAudience(response.uid())
+                .setAudience(response.id())
                 .setIssuedAt(now)
                 .setIssuer(ISS)
                 .setExpiration(new Date(now.getTime() + ACCESS_VALIDITY_TIME))
@@ -66,12 +59,12 @@ public class TokenProvider {
 
     public String generateAccessToken(Player player) {
         Claims claims = Jwts.claims();
-        claims.put("role", player.getRoles());
+        claims.put("role", player.authorization().toStoredAuthorities());
         Date now = new Date();
 
         String token = Jwts.builder()
                 .setClaims(claims)
-                .setAudience(player.getUid())
+                .setAudience(player.id().value())
                 .setIssuedAt(now)
                 .setIssuer(ISS)
                 .setExpiration(new Date(now.getTime() + ACCESS_VALIDITY_TIME))
@@ -106,7 +99,7 @@ public class TokenProvider {
 
         String token = Jwts.builder()
                 .setClaims(claims)
-                .setAudience(response.uid())
+                .setAudience(response.id())
                 .setIssuedAt(now)
                 .setIssuer(ISS)
                 .setExpiration(new Date(now.getTime() + REFRESH_VALIDITY_TIME))
@@ -123,7 +116,7 @@ public class TokenProvider {
 
         String token = Jwts.builder()
                 .setClaims(claims)
-                .setAudience(player.getUid())
+                .setAudience(player.id().value())
                 .setIssuedAt(now)
                 .setIssuer(ISS)
                 .setExpiration(new Date(now.getTime() + REFRESH_VALIDITY_TIME))

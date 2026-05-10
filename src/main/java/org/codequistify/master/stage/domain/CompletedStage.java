@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
-import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.global.util.BaseTimeEntity;
 
 @ToString(exclude = "stage")
@@ -17,9 +16,8 @@ public class CompletedStage extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "player_id")
-    private Player player;
+    @Column(name = "player_id", columnDefinition = "char(36)")
+    private String playerId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stage_id")
@@ -45,8 +43,8 @@ public class CompletedStage extends BaseTimeEntity {
     }
 
     @Builder
-    public CompletedStage(Player player, Stage stage, CompletedStatus status) {
-        this.player = player;
+    public CompletedStage(String playerId, Stage stage, CompletedStatus status) {
+        this.playerId = playerId;
         this.stage = stage;
         this.status = status;
     }

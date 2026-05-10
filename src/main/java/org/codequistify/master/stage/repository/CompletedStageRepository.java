@@ -15,13 +15,13 @@ import java.util.Optional;
 public interface CompletedStageRepository extends JpaRepository<CompletedStage, Long> {
     @Query("SELECT new org.codequistify.master.domain.stage.dto.StageCodeDTO(c.stage.stageImage, '') " +
             "FROM CompletedStage c " +
-            "WHERE c.player.id = :playerId AND c.status = org.codequistify.master.domain.stage.domain.CompletedStatus.COMPLETED")
-    List<StageCodeDTO> findCompletedStagesByPlayerId(@Param("playerId") Long playerId);
+            "WHERE c.playerId = :playerId AND c.status = org.codequistify.master.domain.stage.domain.CompletedStatus.COMPLETED")
+    List<StageCodeDTO> findCompletedStagesByPlayerId(@Param("playerId") String playerId);
 
     @Query("SELECT new org.codequistify.master.domain.stage.dto.StageCodeDTO(c.stage.stageImage, '') " +
             "FROM CompletedStage c " +
-            "WHERE c.player.id = :playerId AND c.status = org.codequistify.master.domain.stage.domain.CompletedStatus.IN_PROGRESS")
-    List<StageCodeDTO> findInProgressStagesByPlayerId(@Param("playerId") Long playerId);
+            "WHERE c.playerId = :playerId AND c.status = org.codequistify.master.domain.stage.domain.CompletedStatus.IN_PROGRESS")
+    List<StageCodeDTO> findInProgressStagesByPlayerId(@Param("playerId") String playerId);
 
     // @Query("""
     //     SELECT new org.codequistify.master.domain.stage.dto.HeatMapDataPoint(
@@ -40,9 +40,9 @@ public interface CompletedStageRepository extends JpaRepository<CompletedStage, 
         """,
         nativeQuery = true
     )
-    List<HeatMapDataPoint> countDataByModifiedDate(@Param("playerId") Long playerId);
+    List<HeatMapDataPoint> countDataByModifiedDate(@Param("playerId") String playerId);
 
-    Optional<CompletedStage> findByPlayerIdAndStageId(Long playerId, Long stageId);
+    Optional<CompletedStage> findByPlayerIdAndStageId(String playerId, Long stageId);
 
-    boolean existsByPlayerIdAndStageId(Long playerId, Long stageId);
+    boolean existsByPlayerIdAndStageId(String playerId, Long stageId);
 }

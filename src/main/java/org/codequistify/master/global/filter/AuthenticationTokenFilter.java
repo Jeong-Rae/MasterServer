@@ -5,7 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.player.service.PlayerDetailsService;
+import org.codequistify.master.domain.player.security.PlayerDetailsService;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.global.jwt.TokenProvider;
@@ -54,7 +54,7 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
         }
 
         if (aud.contains("@")) {
-            UserDetails userDetails = playerDetailsService.findOnePlayerByEmail(aud);
+            UserDetails userDetails = playerDetailsService.loadUserByEmail(aud);
             UsernamePasswordAuthenticationToken authenticationToken
                     = new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), userDetails.getAuthorities());
 

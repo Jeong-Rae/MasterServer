@@ -1,12 +1,14 @@
 package org.codequistify.master.domain.player.service;
 
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.player.converter.PlayerConverter;
 import org.codequistify.master.domain.player.domain.Player;
-import org.codequistify.master.domain.player.domain.PlayerRoleType;
+import org.codequistify.master.domain.player.domain.authorization.PlayerRoleType;
+import org.codequistify.master.domain.player.domain.authorization.PlayerRoles;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.domain.player.dto.PlayerStageProgressResponse;
-import org.codequistify.master.domain.player.repository.PlayerRepository;
+import org.codequistify.master.domain.player.domain.vo.PlayerName;
+import org.codequistify.master.domain.player.persistence.PlayerRepository;
+import org.codequistify.master.domain.player.security.PlayerPrincipal;
 import org.codequistify.master.domain.stage.dto.HeatMapDataPoint;
 import org.codequistify.master.domain.stage.service.StageSearchService;
 import org.codequistify.master.global.aspect.LogExecutionTime;
@@ -20,52 +22,49 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PlayerProfileService {
     private final PlayerRepository playerRepository;
-    private final PlayerConverter playerConverter;
     private final StageSearchService stageSearchService;
 
     @LogExecutionTime
     @Transactional
     public List<PlayerProfile> findAllPlayerProfiles() {
-        return playerRepository.findAll().stream()
-                .map(playerConverter::convert)
+        return playerRepository.findAllPlayers().stream()
+                .map(PlayerProfile::from)
                 .collect(Collectors.toList());
     }
 
     @LogExecutionTime
     @Transactional
-    public PlayerStageProgressResponse getCompletedStagesByPlayerId(Player player) {
-        return stageSearchService.getCompletedStagesByPlayerId(player.getId());
+    public PlayerStageProgressResponse getCompletedStagesByPlayerId(PlayerPrincipal principal) {
+        return stageSearchService.getCompletedStagesByPlayerId(principal.id());
     }
 
     @LogExecutionTime
     @Transactional
-    public PlayerStageProgressResponse getInProgressStagesByPlayerId(Player player) {
-        return stageSearchService.getInProgressStagesByPlayerId(player.getId());
+    public PlayerStageProgressResponse getInProgressStagesByPlayerId(PlayerPrincipal principal) {
+        return stageSearchService.getInProgressStagesByPlayerId(principal.id());
     }
 
     @LogExecutionTime
     @Transactional
-    public List<HeatMapDataPoint> getHeatMapDataPointsByModifiedDate(Player player) {
-        return stageSearchService.getHeatMapDataPointsByModifiedDate(player.getId());
+    public List<HeatMapDataPoint> getHeatMapDataPointsByModifiedDate(PlayerPrincipal principal) {
+        return stageSearchService.getHeatMapDataPointsByModifiedDate(principal.id());
     }
 
-    public boolean isAdmin(Player player) {
-        return (PlayerRolesChecker
-                .checkAnyRole(
-                        player,
-                        List.of(PlayerRoleType.ADMIN.getRole(), PlayerRoleType.SUPER_ADMIN.getRole())));
+    public boolean isAdmin(PlayerPrincipal principal) {
+        return PlayerRolesChecker.checkAnyRole(
+                principal.roles(),
+                PlayerRoles.of(PlayerRoleType.ADMIN, PlayerRoleType.SUPER_ADMIN));
     }
 
     @Transactional
     public Integer increaseExp(Player player, int point) {
-        int exp = player.increaseLevelPoint(point);
-        playerRepository.save(player);
-        return exp;
+        Player updated = playerRepository.save(player.increaseExperience(point));
+        return updated.profile().experience().value();
     }
 
     @Transactional
     public boolean isDuplicatedName(String name) {
-        return playerRepository.existsByNameIgnoreCase(name);
+        return playerRepository.existsProfileName(new PlayerName(name));
     }
 
 

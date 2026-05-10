@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.player.domain;
+package org.codequistify.master.domain.player.domain.authentication;
 
 import lombok.Getter;
 

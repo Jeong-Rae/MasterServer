@@ -7,8 +7,8 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.PlayerStageProgressResponse;
+import org.codequistify.master.domain.player.security.PlayerPrincipal;
 import org.codequistify.master.domain.stage.convertoer.QuestionConverter;
 import org.codequistify.master.domain.stage.convertoer.StageConverter;
 import org.codequistify.master.domain.stage.domain.*;
@@ -116,26 +116,26 @@ public class StageSearchServiceImpl implements StageSearchService {
 
     @Override // 완료 스테이지 조회
     @Transactional
-    public PlayerStageProgressResponse getCompletedStagesByPlayerId(Long playerId) {
+    public PlayerStageProgressResponse getCompletedStagesByPlayerId(String playerId) {
         return new PlayerStageProgressResponse(completedStageRepository.findCompletedStagesByPlayerId(playerId));
     }
 
     @Override // 진행중 스테이지 조회
     @Transactional
-    public PlayerStageProgressResponse getInProgressStagesByPlayerId(Long playerId) {
+    public PlayerStageProgressResponse getInProgressStagesByPlayerId(String playerId) {
         return new PlayerStageProgressResponse(completedStageRepository.findInProgressStagesByPlayerId(playerId));
     }
 
     @Override // 수정일 기준 데이터 조회
     @Transactional
-    public List<HeatMapDataPoint> getHeatMapDataPointsByModifiedDate(Long playerId) {
+    public List<HeatMapDataPoint> getHeatMapDataPointsByModifiedDate(String playerId) {
         return completedStageRepository.countDataByModifiedDate(playerId);
     }
 
     @Override // 입력 쿼리를 기반으로 일치하는 문제 조건 검색
     @Transactional
     @LogMonitoring
-    public StagePageResponse findStagesByCriteria(SearchCriteria searchCriteria, Player player) {
+    public StagePageResponse findStagesByCriteria(SearchCriteria searchCriteria, PlayerPrincipal principal) {
         PageRequest pageRequest = PageRequest
                 .of(searchCriteria.getPage_index() - 1, searchCriteria.getPage_size());
 
@@ -154,16 +154,16 @@ public class StageSearchServiceImpl implements StageSearchService {
         this.addWhereConditionForSearchText(whereClause, searchCriteria, qStage);
 
         // CompletedStatus 조건 적용
-        this.addWhereConditionForCompletedStatus(whereClause, searchCriteria, qCompletedStage, player.getId());
+        this.addWhereConditionForCompletedStatus(whereClause, searchCriteria, qCompletedStage, principal.id());
 
         // 임시 스테이지는 제외
         whereClause.and(qStage.approved.eq(true));
 
         // 쿼리 결과 조회
-        List<StageResponse> results = fetchStageResponses(whereClause, qStage, qCompletedStage, pageRequest, player.getId());
+        List<StageResponse> results = fetchStageResponses(whereClause, qStage, qCompletedStage, pageRequest, principal.id());
 
         // 전체 개수 조회
-        long total = fetchTotalCount(whereClause, qStage, qCompletedStage, player.getId());
+        long total = fetchTotalCount(whereClause, qStage, qCompletedStage, principal.id());
 
         // Page 객체 생성 및 반환
         Page<StageResponse> pages = new PageImpl<>(results, pageRequest, total);
@@ -187,7 +187,7 @@ public class StageSearchServiceImpl implements StageSearchService {
             QStage qStage,
             QCompletedStage qCompletedStage,
             PageRequest pageRequest,
-            Long playerId) {
+            String playerId) {
 
         return queryFactory
                 .select(Projections.constructor(StageResponse.class,
@@ -201,7 +201,7 @@ public class StageSearchServiceImpl implements StageSearchService {
                         qCompletedStage.status.coalesce(CompletedStatus.NOT_COMPLETED)))
                 .from(qStage)
                 .leftJoin(qStage.completedStages, qCompletedStage)
-                .on(qCompletedStage.player.id.eq(playerId))
+                .on(qCompletedStage.playerId.eq(playerId))
                 .where(whereClause)
                 .offset(pageRequest.getOffset())
                 .limit(pageRequest.getPageSize())
@@ -211,11 +211,11 @@ public class StageSearchServiceImpl implements StageSearchService {
     private long fetchTotalCount(BooleanBuilder whereClause,
                                  QStage qStage,
                                  QCompletedStage qCompletedStage,
-                                 Long playerId) {
+                                 String playerId) {
         return queryFactory
                 .from(qStage)
                 .leftJoin(qStage.completedStages, qCompletedStage)
-                .on(qCompletedStage.player.id.eq(playerId))
+                .on(qCompletedStage.playerId.eq(playerId))
                 .where(whereClause)
                 .fetchCount();
     }
@@ -251,14 +251,14 @@ public class StageSearchServiceImpl implements StageSearchService {
         whereClause.and(descriptionContains.or(titleContains).or(stageImageContains));
     }
 
-    private void addWhereConditionForCompletedStatus(BooleanBuilder whereClause, SearchCriteria searchCriteria, QCompletedStage qCompletedStage, Long playerId) {
+    private void addWhereConditionForCompletedStatus(BooleanBuilder whereClause, SearchCriteria searchCriteria, QCompletedStage qCompletedStage, String playerId) {
         if (searchCriteria.getCompleted() != null) {
             if (searchCriteria.getCompleted() == CompletedStatus.NOT_COMPLETED) {
                 // NOT_COMPLETED 상태는 Completed 테이블에 기록되지 않은 상태임
                 whereClause.and(qCompletedStage.id.isNull());
             } else {
                 whereClause.and(qCompletedStage.status.eq(searchCriteria.getCompleted())
-                        .and(qCompletedStage.player.id.eq(playerId)));
+                        .and(qCompletedStage.playerId.eq(playerId)));
             }
         }
     }

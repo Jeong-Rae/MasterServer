@@ -1,6 +1,6 @@
 package org.codequistify.master.domain.stage.service;
 
-import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.security.PlayerPrincipal;
 import org.codequistify.master.domain.stage.dto.GradingRequest;
 import org.codequistify.master.domain.stage.dto.GradingResponse;
 import org.codequistify.master.domain.stage.dto.StageCompletionResponse;
@@ -12,19 +12,19 @@ public interface StageManagementService {
     void saveStage(StageRegistryRequest request);
 
     // 문항 채점 요청
-    GradingResponse evaluateAnswer(Player player, GradingRequest request);
+    GradingResponse evaluateAnswer(PlayerPrincipal principal, GradingRequest request);
 
     // 다음 문제 설정 구성
-    SuccessResponse composePShell(Player player, GradingRequest request);
+    SuccessResponse composePShell(PlayerPrincipal principal, GradingRequest request);
 
     // 풀이 완료 기록
-    StageCompletionResponse recordStageComplete(Player player, Long stageId);
+    StageCompletionResponse recordStageComplete(PlayerPrincipal principal, Long stageId);
 
     // 풀이 시작 기록
-    void recordInProgressStageInit(Player player, GradingRequest request);
+    void recordInProgressStageInit(PlayerPrincipal principal, GradingRequest request);
 
     // 문제 풀이 정보 기록
-    public void updateInProgressStage(Player player, GradingRequest request);
+    public void updateInProgressStage(PlayerPrincipal principal, GradingRequest request);
 
 
     // 스테이지 수정

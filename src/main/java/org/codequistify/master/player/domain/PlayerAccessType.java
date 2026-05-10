@@ -1,6 +1,9 @@
-package org.codequistify.master.domain.player.domain;
+package org.codequistify.master.domain.player.domain.authorization;
 
 import lombok.Getter;
+
+import java.util.Arrays;
+import java.util.Optional;
 
 @Getter
 public enum PlayerAccessType {
@@ -12,5 +15,11 @@ public enum PlayerAccessType {
 
     PlayerAccessType(String permission) {
         this.permission = permission;
+    }
+
+    public static Optional<PlayerAccessType> findByPermission(String permission) {
+        return Arrays.stream(values())
+                .filter(accessType -> accessType.permission.equals(permission))
+                .findFirst();
     }
 }
