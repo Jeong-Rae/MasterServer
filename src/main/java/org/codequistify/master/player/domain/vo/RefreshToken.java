@@ -10,4 +10,8 @@ public record RefreshToken(String value) {
     public boolean isBlank() {
         return value.isBlank();
     }
+
+    public boolean matches(RefreshToken refreshToken) {
+        return equals(refreshToken);
+    }
 }

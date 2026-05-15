@@ -9,58 +9,58 @@ import org.codequistify.master.domain.player.domain.authentication.OAuthType;
 import org.codequistify.master.domain.player.domain.authentication.PlayerAuthentication;
 import org.codequistify.master.domain.player.domain.authorization.PlayerAuthorization;
 import org.codequistify.master.domain.player.domain.profile.PlayerProfile;
-import org.codequistify.master.domain.player.domain.vo.EncodedPassword;
+import org.codequistify.master.domain.player.domain.vo.HashedPassword;
 import org.codequistify.master.domain.player.domain.vo.PlayerEmail;
 import org.codequistify.master.domain.player.domain.vo.PlayerExperience;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
 import org.codequistify.master.domain.player.domain.vo.PlayerName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class PlayerDtoMappingTest {
 
     @Test
-    void playerProfileDtoCanBeCreatedFromDomain() {
+    void 플레이어_도메인을_응답_객체로_변환하면_프로필과_권한을_반환한다() {
         Player player = Player.create(
                 new PlayerId("018f2fcb-7c0a-7cc0-8a2a-111111111111"),
                 new PlayerProfile(new PlayerName("pol"), new PlayerEmail("pol@example.com"), new PlayerExperience(7)),
-                PlayerAuthentication.local(new EncodedPassword("encoded")),
+                PlayerAuthentication.local(new HashedPassword("{bcrypt}encoded")),
                 PlayerAuthorization.basicPlayer());
 
         org.codequistify.master.domain.player.dto.PlayerProfile dto =
                 org.codequistify.master.domain.player.dto.PlayerProfile.from(player);
 
-        assertEquals(player.id().value(), dto.id());
-        assertEquals(player.profile().name().value(), dto.name());
-        assertEquals(player.profile().email().value(), dto.email());
-        assertEquals(player.profile().experience().value(), dto.level());
-        assertEquals(player.authorization().toStoredAuthorities(), dto.roles());
+        assertThat(dto.id()).isEqualTo(player.id().value());
+        assertThat(dto.name()).isEqualTo(player.profile().name().value());
+        assertThat(dto.email()).isEqualTo(player.profile().email().value());
+        assertThat(dto.level()).isEqualTo(player.profile().experience().value());
+        assertThat(dto.roles()).isEqualTo(player.authorization().toStoredAuthorities());
     }
 
     @Test
-    void signUpRequestCanCreatePlayerDomain() {
+    void 회원가입_요청을_플레이어로_변환하면_로컬_인증_도메인을_반환한다() {
         SignUpRequest request = new SignUpRequest("pol", "pol@example.com", "raw-password");
 
         Player player = request.toPlayer();
 
-        assertEquals(request.name(), player.profile().name().value());
-        assertEquals(request.email(), player.profile().email().value());
-        assertEquals(request.password(), player.authentication().encodedPassword().value());
-        assertEquals(OAuthType.POL, player.authentication().oauthIdentity().type());
+        assertThat(player.profile().name().value()).isEqualTo(request.name());
+        assertThat(player.profile().email().value()).isEqualTo(request.email());
+        assertThat(player.authentication().hashedPassword().value()).isEmpty();
+        assertThat(player.authentication().oauthIdentity().type()).isEqualTo(OAuthType.POL);
     }
 
     @Test
-    void oauthDataCanCreatePlayerDomain() {
+    void 외부_인증_데이터를_플레이어로_변환하면_외부_인증_도메인을_반환한다() {
         OAuthData oAuthData = OAuthData.of(
                 new OAuthToken("access", "refresh", 1L, 2L, "scope", "bearer", "id-token"),
-                new OAuthResource("oauth-id", "oauth@example.com", "oauth-name"));
+                new OAuthResource("oauth-id", "oauth@example.com", "oauthname"));
 
         Player player = oAuthData.toPlayer(OAuthType.GOOGLE);
 
-        assertEquals("oauth-name", player.profile().name().value());
-        assertEquals("oauth@example.com", player.profile().email().value());
-        assertEquals(OAuthType.GOOGLE, player.authentication().oauthIdentity().type());
-        assertEquals("oauth-id", player.authentication().oauthIdentity().id());
+        assertThat(player.profile().name().value()).isEqualTo("oauthname");
+        assertThat(player.profile().email().value()).isEqualTo("oauth@example.com");
+        assertThat(player.authentication().oauthIdentity().type()).isEqualTo(OAuthType.GOOGLE);
+        assertThat(player.authentication().oauthIdentity().id()).isEqualTo("oauth-id");
     }
 }

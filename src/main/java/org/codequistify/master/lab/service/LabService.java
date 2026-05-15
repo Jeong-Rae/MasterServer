@@ -22,7 +22,7 @@ public class LabService {
 
     @LogExecutionTime
     public void createStageOnKubernetes(PlayerPrincipal principal, Stage stage){
-        String uid = principal.id().toLowerCase();
+        String uid = principal.id().value().toLowerCase();
 
         kubernetesResourceManager.createServiceOnKubernetes(stage, uid);
         kubernetesResourceManager.createPodOnKubernetes(stage, uid);
@@ -33,7 +33,7 @@ public class LabService {
 
     @LogExecutionTime
     public void deleteAsyncStageOnKubernetes(PlayerPrincipal principal, Stage stage) {
-        String uid = principal.id().toLowerCase();
+        String uid = principal.id().value().toLowerCase();
 
         kubernetesResourceManager.deleteAsyncPod(stage, uid);
         kubernetesResourceManager.deleteAsyncService(stage, uid);
@@ -41,7 +41,7 @@ public class LabService {
 
     @LogExecutionTime
     public void deleteSyncStageOnKubernetes(PlayerPrincipal principal, Stage stage) {
-        String uid = principal.id().toLowerCase();
+        String uid = principal.id().value().toLowerCase();
 
         kubernetesResourceManager.deleteAsyncPod(stage, uid);
         kubernetesResourceManager.deleteAsyncService(stage, uid);
@@ -76,8 +76,8 @@ public class LabService {
 
     @LogExecutionTime
     public boolean existsStageOnKubernetes(PlayerPrincipal principal, Stage stage) {
-        boolean podExists = kubernetesResourceManager.existsPod(stage, principal.id());
-        boolean serviceExists = kubernetesResourceManager.existsService(stage, principal.id());
+        boolean podExists = kubernetesResourceManager.existsPod(stage, principal.id().value());
+        boolean serviceExists = kubernetesResourceManager.existsService(stage, principal.id().value());
 
         LOGGER.info("[existsStageOnKubernetes] pod: {}, svc: {}", podExists, serviceExists);
         return podExists && serviceExists;
@@ -85,7 +85,7 @@ public class LabService {
 
     @LogExecutionTime
     public void waitForPodReadiness(PlayerPrincipal principal, Stage stage) {
-        String uid = principal.id().toLowerCase();
+        String uid = principal.id().value().toLowerCase();
         int retryCount = 0;
         while (true) {
             Pod pod = kubernetesResourceManager.getPod(stage, uid);

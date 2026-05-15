@@ -33,7 +33,7 @@ public class PlayerAuthenticationController {
     public ResponseEntity<BasicResponse> updatePassword(@AuthenticationPrincipal PlayerPrincipal principal,
                                                         @RequestBody UpdatePasswordRequest request) {
         playerDetailsService.updatePassword(principal, request);
-        LOGGER.info("[updatePassword] 비밀번호 재설정 완료, Player: {}", principal.id());
+        LOGGER.info("[updatePassword] 비밀번호 재설정 완료, Player: {}", principal.id().value());
         return ResponseEntity.status(HttpStatus.OK).body(BasicResponse.of("SUCCESS"));
     }
 
@@ -45,7 +45,7 @@ public class PlayerAuthenticationController {
     public ResponseEntity<BasicResponse> resetPassword(@AuthenticationPrincipal PlayerPrincipal principal,
                                                        @RequestBody UpdatePasswordRequest request) {
         playerDetailsService.resetPassword(principal, request);
-        LOGGER.info("[resetPassword] 비밀번호 초기화 완료, Player: {}", principal.id());
+        LOGGER.info("[resetPassword] 비밀번호 초기화 완료, Player: {}", principal.id().value());
         return ResponseEntity.status(HttpStatus.OK).body(BasicResponse.of("SUCCESS"));
     }
 
@@ -56,12 +56,12 @@ public class PlayerAuthenticationController {
     @DeleteMapping("{id}")
     public ResponseEntity<BasicResponse> deletePlayer(@AuthenticationPrincipal PlayerPrincipal principal,
                                                       @PathVariable String id) {
-        if (!id.equals(principal.id())) {
+        if (!id.equals(principal.id().value())) {
             throw new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND);
         }
 
         playerDetailsService.deletePlayer(principal);
-        LOGGER.info("[deletePlayer] 계정 삭제 완료, Player: {}", principal.id());
+        LOGGER.info("[deletePlayer] 계정 삭제 완료, Player: {}", principal.id().value());
         return ResponseEntity.status(HttpStatus.OK).body(BasicResponse.of("SUCCESS"));
     }
 }

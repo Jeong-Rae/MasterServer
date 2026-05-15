@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -16,12 +15,11 @@ import org.codequistify.master.domain.authentication.domain.EmailVerificationTyp
 import org.codequistify.master.domain.authentication.dto.*;
 import org.codequistify.master.domain.authentication.service.AuthenticationService;
 import org.codequistify.master.domain.authentication.service.EmailVerificationService;
-import org.codequistify.master.domain.authentication.service.impl.GithubSocialSignService;
-import org.codequistify.master.domain.authentication.service.impl.GoogleSocialSignService;
-import org.codequistify.master.domain.authentication.service.impl.KakaoSocialSignService;
-import org.codequistify.master.domain.authentication.service.impl.NaverSocialSignService;
-import org.codequistify.master.domain.authentication.vo.OAuthData;
+import org.codequistify.master.domain.authentication.service.OAuthSignService;
+import org.codequistify.master.domain.authentication.vo.OAuthCode;
 import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.domain.authentication.OAuthType;
+import org.codequistify.master.domain.player.domain.vo.RefreshToken;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.domain.player.security.PlayerDetailsService;
 import org.codequistify.master.global.aspect.LogExecutionTime;
@@ -29,10 +27,18 @@ import org.codequistify.master.global.aspect.LogMethodInvocation;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
-import org.codequistify.master.global.jwt.TokenProvider;
+import org.codequistify.master.global.jwt.TokenIssuer;
+import org.codequistify.master.global.jwt.TokenVerifier;
+import org.codequistify.master.global.jwt.cookie.TokenCookieManager;
 import org.codequistify.master.global.jwt.dto.TokenInfo;
 import org.codequistify.master.global.jwt.dto.TokenRequest;
 import org.codequistify.master.global.jwt.dto.TokenResponse;
+import org.codequistify.master.global.jwt.vo.AccessToken;
+import org.codequistify.master.global.jwt.vo.AccessTokenClaims;
+import org.codequistify.master.global.jwt.vo.IssuedTokens;
+import org.codequistify.master.global.jwt.vo.RefreshTokenClaims;
+import org.codequistify.master.global.jwt.vo.TokenAudience;
+import org.codequistify.master.global.jwt.vo.TokenAuthorities;
 import org.codequistify.master.global.util.BasicResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,165 +51,51 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Authentication")
 @RequestMapping("api")
 public class AuthenticationController {
-    private final GoogleSocialSignService googleSocialSignService;
-    private final KakaoSocialSignService kakaoSocialSignService;
-    private final NaverSocialSignService naverSocialSignService;
-    private final GithubSocialSignService githubSocialSignService;
-
     private final AuthenticationService authenticationService;
+    private final OAuthSignService oAuthSignService;
     private final EmailVerificationService emailVerificationService;
     private final PlayerDetailsService playerDetailsService;
 
-    private final TokenProvider tokenProvider;
+    private final TokenIssuer tokenIssuer;
+    private final TokenVerifier tokenVerifier;
+    private final TokenCookieManager tokenCookieManager;
     private final Logger LOGGER = LoggerFactory.getLogger(AuthenticationController.class);
 
     @Operation(
-            summary = "구글 로그인 url 발급",
-            description = "구글 로그인 화면으로 넘어갈 수 있는 url을 발급한다. 고정값이며 저장해여 사용할 수 있다."
+            summary = "OAuth 로그인 url 발급",
+            description = "OAuth provider 로그인 화면으로 넘어갈 수 있는 url을 발급한다. 고정값이며 저장해여 사용할 수 있다."
     )
     @LogMonitoring
     @LogMethodInvocation
     @LogExecutionTime
-    @GetMapping("auth/google/url")
-    public ResponseEntity<BasicResponse> loginUrlGoogle() {
-        BasicResponse response = BasicResponse.of(googleSocialSignService.getSocialLogInURL());
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+    @GetMapping("auth/oauth/{type}/url")
+    public ResponseEntity<BasicResponse> loginUrlOAuth(@PathVariable String type) {
+        OAuthType oAuthType = OAuthType.from(type);
+        BasicResponse response = BasicResponse.of(oAuthSignService.loginUrl(oAuthType));
+        return ResponseEntity.ok(response);
     }
 
     @Operation(
-            summary = "카카오 로그인 url 발급",
-            description = "카카오 로그인 화면으로 넘어갈 수 있는 url을 발급한다. 고정값이며 저장해여 사용할 수 있다."
+            summary = "OAuth 로그인 요청",
+            description = "redirect로 받은 code와 provider type을 인자로 전달한다. 유효한 code라면 사용자 profile과 인증 토큰을 발급받는다."
     )
     @LogMonitoring
-    @GetMapping("auth/kakao/url")
-    public ResponseEntity<BasicResponse> loginUrlKakao() {
-        BasicResponse response = BasicResponse.of(kakaoSocialSignService.getSocialLogInURL());
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
-    @Operation(
-            summary = "네이버 로그인 url 발급",
-            description = "네이버 로그인 화면으로 넘어갈 수 있는 url을 발급한다. 고정값이며 저장해여 사용할 수 있다."
-    )
-    @LogMonitoring
-    @GetMapping("auth/naver/url")
-    public ResponseEntity<BasicResponse> loginUrlNaver() {
-        BasicResponse response = BasicResponse.of(naverSocialSignService.getSocialLogInURL());
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-    @Operation(
-            summary = "깃허브 로그인 url 발급",
-            description = "깃허브 로그인 화면으로 넘어갈 수 있는 url을 발급한다. 고정값이며 저장해여 사용할 수 있다."
-    )
-    @LogMonitoring
-    @GetMapping("auth/github/url")
-    public ResponseEntity<BasicResponse> loginUrlGithub() {
-        BasicResponse response = BasicResponse.of(githubSocialSignService.getSocialLogInURL());
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
-    @Operation(
-            summary = "구글 로그인 요청",
-            description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 profile과 인증 토큰을 발급받는다."
-    )
-    @LogMonitoring
-    @PostMapping("auth/google")
-    public ResponseEntity<LoginResponse> socialSignInGoogle(@RequestBody SocialLogInRequest request, HttpServletResponse response) {
-        OAuthData oAuthData = googleSocialSignService.getOAuthData(request.code());
-
-        PlayerProfile playerProfile;
-        try {
-            playerProfile = googleSocialSignService.socialLogIn(oAuthData);
-        } catch (BusinessException exception) {
-            googleSocialSignService.socialSignUp(oAuthData); // 로그인 되어 있지 않을 때 회원가입 먼저 실행
-            playerProfile = googleSocialSignService.socialLogIn(oAuthData);
-        }
-
-        TokenResponse tokenResponse = generateTokens(playerProfile);
-        this.addTokenToCookie(tokenResponse, response);
+    @PostMapping("auth/oauth/{type}")
+    public ResponseEntity<LoginResponse> socialLogInOAuth(
+            @PathVariable String type,
+            @Valid @RequestBody SocialLogInRequest request,
+            HttpServletResponse response
+    ) {
+        OAuthType oAuthType = OAuthType.from(type);
+        PlayerProfile playerProfile = oAuthSignService.login(oAuthType, new OAuthCode(request.code()));
+        IssuedTokens issuedTokens = issueTokens(playerProfile);
+        tokenCookieManager.addTokenCookies(response, issuedTokens);
+        TokenResponse tokenResponse = TokenResponse.from(issuedTokens);
 
         LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
-        LOGGER.info("[socialSignInGoogle] 구글 로그인, Player: {}", playerProfile.id());
-        return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
-    }
-
-    @Operation(
-            summary = "카카오 로그인 요청",
-            description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 profile과 인증 토큰을 발급받는다."
-    )
-    @LogMonitoring
-    @PostMapping("auth/kakao")
-    public ResponseEntity<LoginResponse> socialLogInKakao(@RequestBody SocialLogInRequest request, HttpServletResponse response) {
-        OAuthData oAuthData = kakaoSocialSignService.getOAuthData(request.code());
-
-        PlayerProfile playerProfile;
-        try {
-            playerProfile = kakaoSocialSignService.socialLogIn(oAuthData);
-        } catch (BusinessException exception) {
-            kakaoSocialSignService.socialSignUp(oAuthData); // 로그인 되어 있지 않을 때 회원가입 먼저 실행
-            playerProfile = kakaoSocialSignService.socialLogIn(oAuthData);
-        }
-
-        TokenResponse tokenResponse = generateTokens(playerProfile);
-        this.addTokenToCookie(tokenResponse, response);
-
-        LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
-
-        LOGGER.info("[socialSignInKakao] 카카오 로그인, Player: {}", playerProfile.id());
-        return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
-    }
-
-    @Operation(
-            summary = "네이버 로그인 요청",
-            description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 profile과 인증 토큰을 발급받는다."
-    )
-    @LogMonitoring
-    @PostMapping("auth/naver")
-    public ResponseEntity<LoginResponse> socialLogInNaver(@RequestBody SocialLogInRequest request, HttpServletResponse response) {
-        OAuthData oAuthData = naverSocialSignService.getOAuthData(request.code());
-
-        PlayerProfile playerProfile;
-        try {
-            playerProfile = naverSocialSignService.socialLogIn(oAuthData);
-        } catch (BusinessException exception) {
-            naverSocialSignService.socialSignUp(oAuthData); // 로그인 되어 있지 않을 때 회원가입 먼저 실행
-            playerProfile = naverSocialSignService.socialLogIn(oAuthData);
-        }
-
-        TokenResponse tokenResponse = generateTokens(playerProfile);
-        this.addTokenToCookie(tokenResponse, response);
-
-        LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
-
-        LOGGER.info("[socialSignInNaver] 네이버 로그인, Player: {}", playerProfile.id());
-        return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
-    }
-
-    @Operation(
-            summary = "깃허브 로그인 요청",
-            description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 profile과 인증 토큰을 발급받는다."
-    )
-    @LogMonitoring
-    @PostMapping("auth/github")
-    public ResponseEntity<LoginResponse> socialLogInGithub(@RequestBody SocialLogInRequest request, HttpServletResponse response) {
-        OAuthData oAuthData = githubSocialSignService.getOAuthData(request.code());
-
-        PlayerProfile playerProfile;
-        try {
-            playerProfile = githubSocialSignService.socialLogIn(oAuthData);
-        } catch (BusinessException exception) {
-            githubSocialSignService.socialSignUp(oAuthData); // 로그인 되어 있지 않을 때 회원가입 먼저 실행
-            playerProfile = githubSocialSignService.socialLogIn(oAuthData);
-        }
-
-        TokenResponse tokenResponse = generateTokens(playerProfile);
-        this.addTokenToCookie(tokenResponse, response);
-
-        LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
-
-        LOGGER.info("[socialSignInNaver] 깃허브 로그인, Player: {}", playerProfile.id());
-        return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
+        LOGGER.info("[socialLogInOAuth] {} 로그인, Player: {}", oAuthType, playerProfile.id());
+        return ResponseEntity.ok(loginResponse);
     }
 
     @Operation(
@@ -232,8 +124,9 @@ public class AuthenticationController {
         // 인증메일 사용처리
         emailVerificationService.markEmailVerificationAsUsed(emailVerification);
 
-        TokenResponse tokenResponse = generateTokens(playerProfile);
-        this.addTokenToCookie(tokenResponse, response);
+        IssuedTokens issuedTokens = issueTokens(playerProfile);
+        tokenCookieManager.addTokenCookies(response, issuedTokens);
+        TokenResponse tokenResponse = TokenResponse.from(issuedTokens);
 
         LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
@@ -250,8 +143,9 @@ public class AuthenticationController {
     public ResponseEntity<LoginResponse> logInPOL(@Valid @RequestBody LogInRequest request, HttpServletResponse response) {
         PlayerProfile playerProfile = authenticationService.logIn(request);
 
-        TokenResponse tokenResponse = generateTokens(playerProfile);
-        this.addTokenToCookie(tokenResponse, response);
+        IssuedTokens issuedTokens = issueTokens(playerProfile);
+        tokenCookieManager.addTokenCookies(response, issuedTokens);
+        TokenResponse tokenResponse = TokenResponse.from(issuedTokens);
 
         LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
@@ -272,11 +166,12 @@ public class AuthenticationController {
     )
     @LogMonitoring
     @PostMapping("auth/refresh")
-    public ResponseEntity<TokenResponse> regenerateAccessToken(@RequestBody TokenRequest request, HttpServletResponse response) {
-        TokenResponse tokenResponse = authenticationService.regenerateAccessToken(request);
-        this.addTokenToCookie(tokenResponse, response);
+    public ResponseEntity<TokenResponse> reissueAccessToken(@RequestBody TokenRequest request, HttpServletResponse response) {
+        IssuedTokens issuedTokens = authenticationService.reissueAccessToken(request);
+        tokenCookieManager.addTokenCookies(response, issuedTokens);
+        TokenResponse tokenResponse = TokenResponse.from(issuedTokens);
 
-        LOGGER.info("[regenerateAccessToken] AccessToken 재발급");
+        LOGGER.info("[reissueAccessToken] AccessToken 재발급");
         return ResponseEntity.status(HttpStatus.OK).body(tokenResponse);
     }
 
@@ -310,8 +205,8 @@ public class AuthenticationController {
     @LogMonitoring
     @PostMapping("auth/logout")
     public ResponseEntity<BasicResponse> LogOut(HttpServletRequest request, HttpServletResponse servletResponse) {
-        String token = tokenProvider.resolveToken(request);
-        String aud = tokenProvider.getAudience(token);
+        String token = tokenVerifier.resolveToken(request);
+        String aud = tokenVerifier.getAudience(token);
         Player player = playerDetailsService.findOnePlayerById(aud);
         if (player == null) {
             throw new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.UNAUTHORIZED);
@@ -319,8 +214,7 @@ public class AuthenticationController {
         authenticationService.logOut(player);
         LOGGER.info("[LogOut] Player: {}, 로그아웃 완료", player.id().value());
 
-        this.removeTokenFromCookie(servletResponse);
-        this.removeTokenFromCookie_DEV(servletResponse);
+        tokenCookieManager.expireTokenCookies(servletResponse);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(BasicResponse.of("SUCCESS"));
@@ -414,165 +308,28 @@ public class AuthenticationController {
     )
     @LogMonitoring
     @GetMapping("/auth/access/{email}/temp")
-    public ResponseEntity<TokenResponse> generateTempToken(@PathVariable String email) {
+    public ResponseEntity<TokenResponse> issueTempToken(@PathVariable String email) {
         EmailVerification emailVerification = emailVerificationService // 인증정보 없으면 서비스에서 예외
                 .getEmailVerificationByEmail(email, false, EmailVerificationType.PASSWORD_RESET);
 
         emailVerificationService.markEmailVerificationAsUsed(emailVerification);
 
-        String accessToken = tokenProvider.generateTempToken(email);
-        TokenResponse response = new TokenResponse("", accessToken);
+        AccessToken accessToken = tokenIssuer.issueTempToken(email);
+        TokenResponse response = TokenResponse.from(IssuedTokens.accessOnly(accessToken));
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
 
-    private TokenResponse generateTokens(PlayerProfile playerProfile) {
-        String refreshToken = tokenProvider.generateRefreshToken(playerProfile);
-        authenticationService.updateRefreshToken(playerProfile.id(), refreshToken); // refresh token db에 저장
+    private IssuedTokens issueTokens(PlayerProfile playerProfile) {
+        TokenAudience audience = TokenAudience.from(playerProfile.id());
+        RefreshToken refreshToken = tokenIssuer.issueRefreshToken(new RefreshTokenClaims(audience));
+        authenticationService.updateRefreshToken(playerProfile.id(), refreshToken.value()); // refresh token db에 저장
 
-        String accessToken = tokenProvider.generateAccessToken(playerProfile);
+        AccessToken accessToken = tokenIssuer.issueAccessToken(new AccessTokenClaims(
+                audience,
+                TokenAuthorities.fromStoredAuthorities(playerProfile.roles())));
 
-        return new TokenResponse(refreshToken, accessToken);
+        return IssuedTokens.of(refreshToken, accessToken);
     }
-
-    private void addTokenToCookie(TokenResponse tokenResponse, HttpServletResponse response) {
-        addRefreshTokenToCookie(tokenResponse.refreshToken(), response);
-        addAccessTokenToCookie(tokenResponse.accessToken(), response);
-        addRefreshTokenToCookie_DEV(tokenResponse.refreshToken(), response);
-        addAccessTokenToCookies_DEV(tokenResponse.accessToken(), response);
-    }
-    private void addRefreshTokenToCookie(String refreshToken, HttpServletResponse response) {
-        Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN", refreshToken);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true);
-        refreshTokenCookie.setDomain("pol.or.kr");
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 일주일
-
-        response.addCookie(refreshTokenCookie);
-    }
-    private void addAccessTokenToCookie(String accessToken, HttpServletResponse response) {
-        Cookie accessTokenCookie = new Cookie("POL_ACCESS_TOKEN", accessToken);
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(true);
-        accessTokenCookie.setDomain("pol.or.kr");
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(60 * 60); // 한 시간
-
-        response.addCookie(accessTokenCookie);
-    }
-
-    private void removeTokenFromCookie(HttpServletResponse response) {
-        Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN", null);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true);
-        refreshTokenCookie.setDomain("pol.or.kr");
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(0); // 지속시간을 0으로 하여 덮어쓰기
-
-        Cookie accessTokenCookie = new Cookie("POL_ACCESS_TOKEN", null);
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(true);
-        accessTokenCookie.setDomain("pol.or.kr");
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(0);
-
-        response.addCookie(refreshTokenCookie);
-        response.addCookie(accessTokenCookie);
-    }
-
-    private void removeTokenFromCookie_DEV(HttpServletResponse response) {
-        Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN_DEV", null);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true);
-        refreshTokenCookie.setDomain("localhost");
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(0);
-
-        Cookie accessTokenCookie = new Cookie("POL_ACCESS_TOKEN_DEV", null);
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(true);
-        accessTokenCookie.setDomain("localhost");
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(0);
-
-        response.addCookie(refreshTokenCookie);
-        response.addCookie(accessTokenCookie);
-    }
-
-    //TODO 임시
-    private void addRefreshTokenToCookie_DEV(String refreshToken, HttpServletResponse response) {
-        Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN_DEV", refreshToken);
-        refreshTokenCookie.setDomain("localhost");
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
-
-        response.addCookie(refreshTokenCookie);
-    }
-
-    //TODO 임시
-    private void addAccessTokenToCookies_DEV(String accessToken, HttpServletResponse response) {
-        Cookie accessTokenCookie = new Cookie("POL_ACCESS_TOKEN_DEV", accessToken);
-        accessTokenCookie.setDomain("localhost");
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(60 * 60);
-
-        response.addCookie(accessTokenCookie);
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /*
-    //서버용인증
-    @GetMapping("auth/google")
-    @Operation(hidden = true)
-    public PlayerProfile googleLogin(@RequestParam String code) {
-        return googleSocialSignService.socialLogIn(code);
-    }
-
-    //서버용인증
-    @Operation(hidden = true)
-    @GetMapping("auth/kakao")
-    public PlayerProfile kakaoLogin(@RequestParam String code) {
-        return kakaoSocialSignService.socialLogIn(code);
-    }
-
-    //서버용인증
-    @GetMapping("auth/callback/naver")
-    @Operation()
-    public ResponseEntity<?> naverLogin(@RequestParam String code, HttpServletResponse response) {
-        SocialLogInRequest request = new SocialLogInRequest(code);
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(socialLogInNaver(request, response));
-    }
-
-    //서버용인증
-    @GetMapping("auth/callback/github")
-    @Operation()
-    public ResponseEntity<?> githubLogin(@RequestParam String code, HttpServletResponse response) {
-        SocialLogInRequest request = new SocialLogInRequest(code);
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(socialLogInGithub(request, response));
-    }
-
-     */
-
 }

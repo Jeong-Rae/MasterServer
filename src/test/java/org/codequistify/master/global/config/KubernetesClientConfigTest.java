@@ -12,7 +12,7 @@ class KubernetesClientConfigTest {
             .withUserConfiguration(KubernetesClientConfig.class);
 
     @Test
-    void localProfileUsesKubernetesMockServerClient() {
+    void 로컬_프로필로_기동하면_쿠버네티스_목_클라이언트를_사용한다() {
         contextRunner
                 .withPropertyValues("spring.profiles.active=local")
                 .run(context -> {

@@ -35,19 +35,19 @@ public class PlayerProfileService {
     @LogExecutionTime
     @Transactional
     public PlayerStageProgressResponse getCompletedStagesByPlayerId(PlayerPrincipal principal) {
-        return stageSearchService.getCompletedStagesByPlayerId(principal.id());
+        return stageSearchService.getCompletedStagesByPlayerId(principal.id().value());
     }
 
     @LogExecutionTime
     @Transactional
     public PlayerStageProgressResponse getInProgressStagesByPlayerId(PlayerPrincipal principal) {
-        return stageSearchService.getInProgressStagesByPlayerId(principal.id());
+        return stageSearchService.getInProgressStagesByPlayerId(principal.id().value());
     }
 
     @LogExecutionTime
     @Transactional
     public List<HeatMapDataPoint> getHeatMapDataPointsByModifiedDate(PlayerPrincipal principal) {
-        return stageSearchService.getHeatMapDataPointsByModifiedDate(principal.id());
+        return stageSearchService.getHeatMapDataPointsByModifiedDate(principal.id().value());
     }
 
     public boolean isAdmin(PlayerPrincipal principal) {

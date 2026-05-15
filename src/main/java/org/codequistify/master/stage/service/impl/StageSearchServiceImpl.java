@@ -154,16 +154,16 @@ public class StageSearchServiceImpl implements StageSearchService {
         this.addWhereConditionForSearchText(whereClause, searchCriteria, qStage);
 
         // CompletedStatus 조건 적용
-        this.addWhereConditionForCompletedStatus(whereClause, searchCriteria, qCompletedStage, principal.id());
+        this.addWhereConditionForCompletedStatus(whereClause, searchCriteria, qCompletedStage, principal.id().value());
 
         // 임시 스테이지는 제외
         whereClause.and(qStage.approved.eq(true));
 
         // 쿼리 결과 조회
-        List<StageResponse> results = fetchStageResponses(whereClause, qStage, qCompletedStage, pageRequest, principal.id());
+        List<StageResponse> results = fetchStageResponses(whereClause, qStage, qCompletedStage, pageRequest, principal.id().value());
 
         // 전체 개수 조회
-        long total = fetchTotalCount(whereClause, qStage, qCompletedStage, principal.id());
+        long total = fetchTotalCount(whereClause, qStage, qCompletedStage, principal.id().value());
 
         // Page 객체 생성 및 반환
         Page<StageResponse> pages = new PageImpl<>(results, pageRequest, total);

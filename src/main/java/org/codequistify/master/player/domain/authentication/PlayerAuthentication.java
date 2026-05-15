@@ -1,18 +1,18 @@
 package org.codequistify.master.domain.player.domain.authentication;
 
-import org.codequistify.master.domain.player.domain.vo.EncodedPassword;
+import org.codequistify.master.domain.player.domain.vo.HashedPassword;
 import org.codequistify.master.domain.player.domain.vo.OAuthAccessToken;
 import org.codequistify.master.domain.player.domain.vo.RefreshToken;
 
 public record PlayerAuthentication(
-        EncodedPassword encodedPassword,
+        HashedPassword hashedPassword,
         OAuthIdentity oauthIdentity,
         RefreshToken refreshToken,
         OAuthAccessToken oauthAccessToken
 ) {
     public PlayerAuthentication {
-        if (encodedPassword == null) {
-            encodedPassword = new EncodedPassword("");
+        if (hashedPassword == null) {
+            hashedPassword = new HashedPassword("");
         }
         if (oauthIdentity == null) {
             oauthIdentity = OAuthIdentity.local();
@@ -25,27 +25,35 @@ public record PlayerAuthentication(
         }
     }
 
-    public static PlayerAuthentication local(EncodedPassword encodedPassword) {
-        return new PlayerAuthentication(encodedPassword, OAuthIdentity.local(), new RefreshToken(""), new OAuthAccessToken(""));
+    public static PlayerAuthentication local(HashedPassword hashedPassword) {
+        return new PlayerAuthentication(hashedPassword, OAuthIdentity.local(), new RefreshToken(""), new OAuthAccessToken(""));
     }
 
-    public PlayerAuthentication encode(EncodedPassword encodedPassword) {
-        return new PlayerAuthentication(encodedPassword, oauthIdentity, refreshToken, oauthAccessToken);
+    public PlayerAuthentication withHashedPassword(HashedPassword hashedPassword) {
+        return new PlayerAuthentication(hashedPassword, oauthIdentity, refreshToken, oauthAccessToken);
     }
 
     public PlayerAuthentication updateRefreshToken(RefreshToken refreshToken) {
-        return new PlayerAuthentication(encodedPassword, oauthIdentity, refreshToken, oauthAccessToken);
+        return new PlayerAuthentication(hashedPassword, oauthIdentity, refreshToken, oauthAccessToken);
     }
 
     public PlayerAuthentication updateOAuthAccessToken(OAuthAccessToken oauthAccessToken) {
-        return new PlayerAuthentication(encodedPassword, oauthIdentity, refreshToken, oauthAccessToken);
+        return new PlayerAuthentication(hashedPassword, oauthIdentity, refreshToken, oauthAccessToken);
     }
 
     public PlayerAuthentication clearRefreshToken() {
         return updateRefreshToken(new RefreshToken(""));
     }
 
+    public boolean hasRefreshToken(RefreshToken refreshToken) {
+        return this.refreshToken.matches(refreshToken);
+    }
+
     public PlayerAuthentication clearOAuthAccessToken() {
         return updateOAuthAccessToken(new OAuthAccessToken(""));
+    }
+
+    public boolean hasOAuthAccessToken() {
+        return !oauthAccessToken.isBlank();
     }
 }

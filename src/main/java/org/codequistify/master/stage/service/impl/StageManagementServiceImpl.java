@@ -95,7 +95,7 @@ public class StageManagementServiceImpl implements StageManagementService {
                 request.questionIndex());
 
         SuccessResponse response = labAssignmentService
-                .sendGradingRequest(stage.getStageImage().name(), principal.id().toLowerCase(), stageActionRequest)
+                .sendGradingRequest(stage.getStageImage().name(), principal.id().value().toLowerCase(), stageActionRequest)
                 .getBody();
 
         return response.success();
@@ -118,7 +118,7 @@ public class StageManagementServiceImpl implements StageManagementService {
                 request.questionIndex());
 
         SuccessResponse response = labAssignmentService
-                .sendComposeRequest(stage.getStageImage().name(), principal.id().toLowerCase(), stageActionRequest)
+                .sendComposeRequest(stage.getStageImage().name(), principal.id().value().toLowerCase(), stageActionRequest)
                 .getBody();
 
         return response;
@@ -129,7 +129,7 @@ public class StageManagementServiceImpl implements StageManagementService {
     @Override
     @Transactional
     public StageCompletionResponse recordStageComplete(PlayerPrincipal principal, Long stageId) {
-        Player player = playerDetailsService.findOnePlayerById(principal.id());
+        Player player = playerDetailsService.findOnePlayerById(principal.id().value());
         Stage stage = stageRepository.findById(stageId)
                 .orElseThrow(() -> {
                     LOGGER.info("[recordStageComplete] {}}, stage: {}",
@@ -174,7 +174,7 @@ public class StageManagementServiceImpl implements StageManagementService {
     @Transactional
     public void recordInProgressStageInit(PlayerPrincipal principal, GradingRequest request) {
         if (completedStageRepository
-                .existsByPlayerIdAndStageId(principal.id(), request.stageId())) {
+                .existsByPlayerIdAndStageId(principal.id().value(), request.stageId())) {
             return;
         }
 
@@ -186,7 +186,7 @@ public class StageManagementServiceImpl implements StageManagementService {
                 });
 
         CompletedStage completedStage = CompletedStage.builder()
-                .playerId(principal.id())
+                .playerId(principal.id().value())
                 .stage(stage)
                 .status(CompletedStatus.IN_PROGRESS).build();
 
@@ -198,7 +198,7 @@ public class StageManagementServiceImpl implements StageManagementService {
     @Transactional
     public void updateInProgressStage(PlayerPrincipal principal, GradingRequest request) {
         CompletedStage completedStage = completedStageRepository
-                .findByPlayerIdAndStageId(principal.id(), request.stageId())
+                .findByPlayerIdAndStageId(principal.id().value(), request.stageId())
                 .orElseThrow(()->{
                     LOGGER.info("[updateInProgressStage] {}, stage: {}",
                             ErrorCode.STAGE_PROGRESS_NOT_FOUND.getMessage(), request.stageId());

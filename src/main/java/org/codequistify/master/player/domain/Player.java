@@ -3,7 +3,7 @@ package org.codequistify.master.domain.player.domain;
 import org.codequistify.master.domain.player.domain.authentication.PlayerAuthentication;
 import org.codequistify.master.domain.player.domain.authorization.PlayerAuthorization;
 import org.codequistify.master.domain.player.domain.profile.PlayerProfile;
-import org.codequistify.master.domain.player.domain.vo.EncodedPassword;
+import org.codequistify.master.domain.player.domain.vo.HashedPassword;
 import org.codequistify.master.domain.player.domain.vo.OAuthAccessToken;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
 import org.codequistify.master.domain.player.domain.vo.RefreshToken;
@@ -30,8 +30,8 @@ public record Player(
         return new Player(id, profile, authentication, authorization, PlayerStatus.ACTIVE);
     }
 
-    public Player withEncodedPassword(EncodedPassword encodedPassword) {
-        return new Player(id, profile, authentication.encode(encodedPassword), authorization, status);
+    public Player withHashedPassword(HashedPassword hashedPassword) {
+        return new Player(id, profile, authentication.withHashedPassword(hashedPassword), authorization, status);
     }
 
     public Player updateRefreshToken(RefreshToken refreshToken) {
@@ -42,12 +42,24 @@ public record Player(
         return new Player(id, profile, authentication.clearRefreshToken(), authorization, status);
     }
 
+    public boolean hasRefreshToken(RefreshToken refreshToken) {
+        return authentication.hasRefreshToken(refreshToken);
+    }
+
     public Player updateOAuthAccessToken(OAuthAccessToken oauthAccessToken) {
         return new Player(id, profile, authentication.updateOAuthAccessToken(oauthAccessToken), authorization, status);
     }
 
     public Player clearOAuthAccessToken() {
         return new Player(id, profile, authentication.clearOAuthAccessToken(), authorization, status);
+    }
+
+    public boolean hasOAuthAccessToken() {
+        return authentication.hasOAuthAccessToken();
+    }
+
+    public OAuthAccessToken oauthAccessToken() {
+        return authentication.oauthAccessToken();
     }
 
     public Player increaseExperience(int point) {

@@ -51,7 +51,7 @@ public class LabController {
     @PostMapping("lab/terminal/stage/{stage_id}")
     public ResponseEntity<PShellCreateResponse> applyPShell(@AuthenticationPrincipal PlayerPrincipal principal,
                                                             @PathVariable(name = "stage_id") Long stageId) {
-        ReentrantLock lock = lockManager.getLock(principal.id(), stageId);
+        ReentrantLock lock = lockManager.getLock(principal.id().value(), stageId);
         if (lock.tryLock()) {
             try {
                 Stage stage = stageSearchService.getStageById(stageId);
@@ -60,7 +60,7 @@ public class LabController {
                 labService.createStageOnKubernetes(principal, stage);
 
                 PShellCreateResponse response = PShellCreateResponse
-                        .of(LAB_HOST, principal.id(), stage.getStageImage().name().toLowerCase());
+                        .of(LAB_HOST, principal.id().value(), stage.getStageImage().name().toLowerCase());
 
                 labService.waitForPodReadiness(principal, stage);
 
@@ -68,7 +68,7 @@ public class LabController {
                         .status(HttpStatus.OK)
                         .body(response);
             } finally {
-                lockManager.unlock(principal.id(), stageId);
+                lockManager.unlock(principal.id().value(), stageId);
             }
         }
 
@@ -96,7 +96,7 @@ public class LabController {
         Stage stage = stageSearchService.getStageById(stageId);
 
         PShellCreateResponse response = PShellCreateResponse
-                .of(LAB_HOST, principal.id(), stage.getStageImage().name().toLowerCase());
+                .of(LAB_HOST, principal.id().value(), stage.getStageImage().name().toLowerCase());
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -120,7 +120,7 @@ public class LabController {
         boolean stageExists = labService.existsStageOnKubernetes(principal, stage);
 
         PShellExistsResponse response = new PShellExistsResponse(
-                principal.id(),
+                principal.id().value(),
                 stageId,
                 stage.getStageImage().name(),
                 stageExists

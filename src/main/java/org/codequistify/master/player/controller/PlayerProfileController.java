@@ -42,7 +42,7 @@ public class PlayerProfileController {
     )
     @GetMapping("me/profile")
     public ResponseEntity<PlayerProfile> getMyProfile(@AuthenticationPrincipal PlayerPrincipal principal) {
-        PlayerProfile playerProfile = PlayerProfile.from(playerDetailsService.findOnePlayerById(principal.id()));
+        PlayerProfile playerProfile = PlayerProfile.from(playerDetailsService.findOnePlayerById(principal.id().value()));
         return ResponseEntity.status(HttpStatus.OK).body(playerProfile);
     }
 

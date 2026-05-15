@@ -1,33 +1,40 @@
 package org.codequistify.master.domain.authentication.service;
 
+import com.vane.badwordfiltering.BadWordFiltering;
 import io.jsonwebtoken.Claims;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.authentication.client.OAuthTokenRevocationClient;
 import org.codequistify.master.domain.authentication.dto.LogInRequest;
 import org.codequistify.master.domain.authentication.dto.SignUpRequest;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.domain.authentication.OAuthType;
-import org.codequistify.master.domain.player.domain.vo.EncodedPassword;
-import org.codequistify.master.domain.player.domain.vo.OAuthAccessToken;
+import org.codequistify.master.domain.player.domain.vo.PlayerName;
 import org.codequistify.master.domain.player.domain.vo.RawPassword;
+import org.codequistify.master.domain.player.domain.vo.RefreshToken;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
+import org.codequistify.master.domain.player.security.HashPasswordEncoder;
 import org.codequistify.master.domain.player.security.PlayerDetailsService;
 import org.codequistify.master.domain.player.service.PlayerProfileService;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
-import org.codequistify.master.global.jwt.TokenProvider;
-import org.codequistify.master.global.jwt.dto.TokenInfo;
+import org.codequistify.master.global.jwt.TokenIssuer;
+import org.codequistify.master.global.jwt.TokenVerifier;
 import org.codequistify.master.global.jwt.dto.TokenRequest;
-import org.codequistify.master.global.jwt.dto.TokenResponse;
+import org.codequistify.master.global.jwt.dto.TokenInfo;
+import org.codequistify.master.global.jwt.vo.AccessToken;
+import org.codequistify.master.global.jwt.vo.AccessTokenClaims;
+import org.codequistify.master.global.jwt.vo.IssuedTokens;
+import org.codequistify.master.global.jwt.vo.RefreshTokenClaims;
+import org.codequistify.master.global.jwt.vo.TokenAudience;
+import org.codequistify.master.global.jwt.vo.TokenAuthorities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.*;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -40,9 +47,11 @@ public class AuthenticationService {
     private final PlayerProfileService playerProfileService;
     private final EmailVerificationService emailVerificationService;
 
-    private final PlayerValidator playerValidator;
-    private final TokenProvider tokenProvider;
-    private final PasswordEncoder passwordEncoder;
+    private final BadWordFiltering badWordFiltering;
+    private final TokenIssuer tokenIssuer;
+    private final TokenVerifier tokenVerifier;
+    private final HashPasswordEncoder hashPasswordEncoder;
+    private final OAuthTokenRevocationClient oAuthTokenRevocationClient;
     private final Logger LOGGER = LoggerFactory.getLogger(AuthenticationService.class);
 
     @Transactional
@@ -58,22 +67,32 @@ public class AuthenticationService {
                     LOGGER.info("[signUp] {} Email: {}", ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH.getMessage(), request.email());
                     throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH, HttpStatus.BAD_REQUEST, authType.name());
                 });
-        if (!playerValidator.isValidPassword(request.password())) {
+        RawPassword rawPassword;
+        try {
+            rawPassword = RawPassword.middleLevel(request.password());
+        } catch (IllegalArgumentException exception) {
             LOGGER.info("[signUp] {}", ErrorCode.PASSWORD_POLICY_VIOLATION.getCode());
             throw new BusinessException(ErrorCode.PASSWORD_POLICY_VIOLATION, HttpStatus.BAD_REQUEST);
         }
-        if (!playerValidator.isValidName(request.name())) {
+
+        PlayerName playerName;
+        try {
+            playerName = new PlayerName(request.name());
+            if (badWordFiltering.check(playerName.value())) {
+                throw new IllegalArgumentException("player name contains profanity");
+            }
+        } catch (IllegalArgumentException exception) {
             LOGGER.info("[signUp] {}, Name: {}", ErrorCode.PROFANITY_IN_NAME.getCode(), request.name());
             throw new BusinessException(ErrorCode.PROFANITY_IN_NAME, HttpStatus.BAD_REQUEST);
         }
-        if (playerProfileService.isDuplicatedName(request.name())) {
-            LOGGER.info("[signUp] {}, Name: {}", ErrorCode.DUPLICATE_NAME.getCode(), request.name());
+
+        if (playerProfileService.isDuplicatedName(playerName.value())) {
+            LOGGER.info("[signUp] {}, Name: {}", ErrorCode.DUPLICATE_NAME.getCode(), playerName.value());
             throw new BusinessException(ErrorCode.DUPLICATE_NAME, HttpStatus.BAD_REQUEST);
         }
 
-        Player player = request.toPlayer();
-
-        player = player.withEncodedPassword(new EncodedPassword(passwordEncoder.encode(player.authentication().encodedPassword().value())));
+        Player player = request.toPlayer()
+                .withHashedPassword(hashPasswordEncoder.encode(rawPassword));
         player = playerDetailsService.save(player);
 
         LOGGER.info("[signUp] Player: {}, 회원가입 완료", player.id().value());
@@ -91,7 +110,7 @@ public class AuthenticationService {
             throw new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
         }
 
-        if (!passwordEncoder.matches(request.password(), player.authentication().encodedPassword().value())) {
+        if (!playerDetailsService.matchesPassword(request.password(), player)) {
             throw new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
         }
 
@@ -101,31 +120,14 @@ public class AuthenticationService {
     @Transactional
     @LogMonitoring
     public void logOut(Player player) {
-        if (!player.authentication().oauthAccessToken().isBlank()) {
-            revokeTokenForGoogle(player.authentication().oauthAccessToken().value());
+        if (player.hasOAuthAccessToken()) {
+            oAuthTokenRevocationClient.revokeGoogle(player.oauthAccessToken());
             player = player.clearOAuthAccessToken();
         }
 
         player = player.clearRefreshToken();
 
         playerDetailsService.save(player);
-    }
-
-    @LogMonitoring
-    private void revokeTokenForGoogle(String token) {
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        String url = "https://accounts.google.com/o/oauth2/revoke?token=" + token;
-
-        HttpEntity<String> request = new HttpEntity<>(headers);
-
-        try {
-            ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
-        } catch (RuntimeException exception) {
-            LOGGER.info("[revokeTokenForGoogle] 만료시킬 수 없는 토큰");
-        }
     }
 
     @LogMonitoring
@@ -140,26 +142,29 @@ public class AuthenticationService {
     }
 
     @LogMonitoring
-    public TokenResponse regenerateAccessToken(TokenRequest request) {
-        String id = tokenProvider.getAudience(request.refreshToken());
+    public IssuedTokens reissueAccessToken(TokenRequest request) {
+        RefreshTokenClaims refreshTokenClaims = tokenVerifier.parseRefreshToken(request.refreshToken());
         Player player;
         try {
-            player = playerDetailsService.findOnePlayerById(id);
+            player = playerDetailsService.findOnePlayerById(refreshTokenClaims.audience().value());
         } catch (BusinessException exception) {
             throw new BusinessException(ErrorCode.INVALID_TOKEN, HttpStatus.UNAUTHORIZED);
         }
 
-        String accessToken = "";
-        if (player.authentication().refreshToken().value().equals(request.refreshToken())) {
-            accessToken = tokenProvider.generateAccessToken(player);
+        RefreshToken requestedRefreshToken = new RefreshToken(request.refreshToken());
+        AccessToken accessToken = new AccessToken("");
+        if (player.hasRefreshToken(requestedRefreshToken)) {
+            accessToken = tokenIssuer.issueAccessToken(new AccessTokenClaims(
+                    new TokenAudience(player.id()),
+                    new TokenAuthorities(player.authorization())));
         }
 
-        return new TokenResponse(request.refreshToken(), accessToken);
+        return IssuedTokens.of(requestedRefreshToken, accessToken);
     }
 
     @LogExecutionTime
     public TokenInfo analyzeTokenInfo(String token) {
-        Claims claims = tokenProvider.getClaims(token);
+        Claims claims = tokenVerifier.getClaims(token);
         if (claims == null) {
             throw new BusinessException(ErrorCode.INVALID_TOKEN, HttpStatus.BAD_REQUEST);
         }
@@ -172,8 +177,9 @@ public class AuthenticationService {
 
         String iss = claims.getIssuer();
         List<String> roles = (List<String>) claims.get("role");
-        boolean valid = tokenProvider.isValidatedToken(token);
+        boolean valid = tokenVerifier.isValidatedToken(token);
 
         return new TokenInfo(aud, roles, iat, exp, iss, valid);
     }
+
 }

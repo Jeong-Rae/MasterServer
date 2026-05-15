@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.domain.PlayerStatusTransition;
 import org.codequistify.master.domain.player.domain.authentication.OAuthType;
-import org.codequistify.master.domain.player.domain.vo.EncodedPassword;
 import org.codequistify.master.domain.player.domain.vo.PlayerEmail;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
 import org.codequistify.master.domain.player.domain.vo.RawPassword;
@@ -21,8 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,8 +30,8 @@ import java.util.Optional;
 public class PlayerDetailsService implements UserDetailsService {
     private final PlayerRepository playerRepository;
     private final PlayerPrincipalMapper playerPrincipalMapper;
+    private final HashPasswordEncoder hashPasswordEncoder;
 
-    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final Logger LOGGER = LoggerFactory.getLogger(PlayerDetailsService.class);
 
     @Override
@@ -53,8 +50,9 @@ public class PlayerDetailsService implements UserDetailsService {
     @Transactional
     @LogMonitoring
     public void resetPassword(PlayerPrincipal principal, UpdatePasswordRequest request) {
-        Player player = findOnePlayerById(principal.id())
-                .withEncodedPassword(new EncodedPassword(passwordEncoder.encode(request.password())));
+        RawPassword rawPassword = middleLevelPassword(request.password());
+        Player player = findOnePlayerById(principal.id().value())
+                .withHashedPassword(hashPasswordEncoder.encode(rawPassword));
         playerRepository.save(player);
         LOGGER.info("[resetPassword] Player: {}, 비밀번호 초기화 성공", player.id().value());
     }
@@ -62,12 +60,13 @@ public class PlayerDetailsService implements UserDetailsService {
     @Transactional
     @LogMonitoring
     public void updatePassword(PlayerPrincipal principal, UpdatePasswordRequest request) {
-        Player player = findOnePlayerById(principal.id());
-        if (!matches(new RawPassword(request.rawPassword()), player.authentication().encodedPassword())) {
+        RawPassword newPassword = middleLevelPassword(request.password());
+        Player player = findOnePlayerById(principal.id().value());
+        if (!matchesPassword(request.rawPassword(), player)) {
             throw new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
         }
 
-        playerRepository.save(player.withEncodedPassword(new EncodedPassword(passwordEncoder.encode(request.password()))));
+        playerRepository.save(player.withHashedPassword(hashPasswordEncoder.encode(newPassword)));
         LOGGER.info("[updatePassword] Player: {}, 비밀번호 재설정 성공", player.id().value());
     }
 
@@ -112,11 +111,19 @@ public class PlayerDetailsService implements UserDetailsService {
     @Transactional
     @LogMonitoring
     public void deletePlayer(PlayerPrincipal principal) {
-        Player player = findOnePlayerById(principal.id()).transition(PlayerStatusTransition.DELETE);
+        Player player = findOnePlayerById(principal.id().value()).transition(PlayerStatusTransition.DELETE);
         playerRepository.save(player);
     }
 
-    public boolean matches(RawPassword rawPassword, EncodedPassword encodedPassword) {
-        return passwordEncoder.matches(rawPassword.value(), encodedPassword.value());
+    public boolean matchesPassword(String rawPassword, Player player) {
+        return hashPasswordEncoder.matches(new RawPassword(rawPassword), player.authentication().hashedPassword());
+    }
+
+    private RawPassword middleLevelPassword(String rawPassword) {
+        try {
+            return RawPassword.middleLevel(rawPassword);
+        } catch (IllegalArgumentException exception) {
+            throw new BusinessException(ErrorCode.PASSWORD_POLICY_VIOLATION, HttpStatus.BAD_REQUEST);
+        }
     }
 }

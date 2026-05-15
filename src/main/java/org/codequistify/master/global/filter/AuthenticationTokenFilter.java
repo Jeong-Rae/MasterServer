@@ -5,17 +5,14 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.player.security.PlayerDetailsService;
-import org.codequistify.master.global.exception.ErrorCode;
-import org.codequistify.master.global.exception.domain.BusinessException;
-import org.codequistify.master.global.jwt.TokenProvider;
+import org.codequistify.master.domain.player.security.PlayerPrincipal;
+import org.codequistify.master.global.jwt.TokenVerifier;
+import org.codequistify.master.global.jwt.vo.AccessTokenClaims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -26,8 +23,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class AuthenticationTokenFilter extends OncePerRequestFilter {
-    private final TokenProvider tokenProvider;
-    private final PlayerDetailsService playerDetailsService;
+    private final TokenVerifier tokenVerifier;
     private final Logger LOGGER = LoggerFactory.getLogger(AuthenticationTokenFilter.class);
 
     @Value("${host.develop.api.ant-match.uri}")
@@ -45,32 +41,15 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
             }
         }
 
-        String token = tokenProvider.resolveToken(request);
-
-        String aud = tokenProvider.getAudience(token);
-        LOGGER.info("[] aud  {}", aud);
-        if (aud == null || aud.isBlank()) {
-            throw new BusinessException(ErrorCode.INVALID_TOKEN, HttpStatus.UNAUTHORIZED);
-        }
-
-        if (aud.contains("@")) {
-            UserDetails userDetails = playerDetailsService.loadUserByEmail(aud);
-            UsernamePasswordAuthenticationToken authenticationToken
-                    = new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), userDetails.getAuthorities());
-
-            LOGGER.info("[AuthenticationTokenFilter] {}", authenticationToken);
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        UserDetails userDetails = playerDetailsService.loadUserByUsername(aud);
+        String token = tokenVerifier.resolveToken(request);
+        AccessTokenClaims claims = tokenVerifier.parseAccessToken(token);
+        PlayerPrincipal principal = claims.toPrincipal();
         UsernamePasswordAuthenticationToken authenticationToken
-                = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
 
+        LOGGER.info("[AuthenticationTokenFilter] {}", authenticationToken);
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
-        //response.setHeader("Authorization", token);
         filterChain.doFilter(request, response);
     }
 }
