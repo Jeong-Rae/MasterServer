@@ -6,11 +6,10 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import java.util.Collections;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Collections;
 
 @Configuration
 public class SwaggerConfig {
@@ -30,13 +29,9 @@ public class SwaggerConfig {
                 .description("POL의 마스터 서버 API 정보 명세서입니다.")
                 .version(APP_VERSION);
 
-        Server develop = new Server()
-                .url(DEVELOP_HOST)
-                .description("Develop server");
+        Server develop = new Server().url(DEVELOP_HOST).description("Develop server");
 
-        Server deploy = new Server()
-                .url(DEPLOY_HOST)
-                .description("Deploy server");
+        Server deploy = new Server().url(DEPLOY_HOST).description("Deploy server");
 
         SecurityScheme securityScheme = new SecurityScheme()
                 .type(SecurityScheme.Type.HTTP)
@@ -44,8 +39,7 @@ public class SwaggerConfig {
                 .bearerFormat("JWT")
                 .name("Authorization");
 
-        SecurityRequirement securityRequirement = new SecurityRequirement()
-                .addList("Authorization");
+        SecurityRequirement securityRequirement = new SecurityRequirement().addList("Authorization");
 
         return new OpenAPI()
                 .addServersItem(develop)
@@ -53,6 +47,5 @@ public class SwaggerConfig {
                 .info(info)
                 .components(new Components().addSecuritySchemes("Authorization", securityScheme))
                 .security(Collections.singletonList(securityRequirement));
-
     }
 }

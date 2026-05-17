@@ -21,9 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class PlayerAuthorizationController {
     private final PlayerProfileService playerProfileService;
 
-    @Operation(
-            summary = "관리자 권한 확인",
-            description = "해당 유저가 관리자 권한을 가지고 있는지 검증합니다.")
+    @Operation(summary = "관리자 권한 확인", description = "해당 유저가 관리자 권한을 가지고 있는지 검증합니다.")
     @LogMonitoring
     @GetMapping("me/admin")
     public ResponseEntity<BasicResponse> checkAdminRole(@AuthenticationPrincipal PlayerPrincipal principal) {

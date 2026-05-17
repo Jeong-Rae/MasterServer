@@ -3,10 +3,11 @@ package org.codequistify.master.domain.stage.utils;
 import java.util.List;
 
 public class HangulExtractor {
-    public final static List<Character> choseongs = List
-            .of('ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ');
-    private final static int JUNGSEONGS_COUNT = 21;
-    private final static int JONGSEONGS_COUNT = 28;
+    public static final List<Character> choseongs =
+            List.of('ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ');
+    private static final int JUNGSEONGS_COUNT = 21;
+    private static final int JONGSEONGS_COUNT = 28;
+
     public String extractChoseongs(String src) {
         StringBuilder sb = new StringBuilder();
 
@@ -45,9 +46,5 @@ public class HangulExtractor {
         return 0xAC00 <= unicode && unicode <= 0xD7A3; // 한글이면
     }
 
-    public static record ChoCho (
-            String choseongs
-    ) {
-
-    }
+    public static record ChoCho(String choseongs) {}
 }

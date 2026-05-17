@@ -12,9 +12,9 @@ import org.hibernate.annotations.ColumnDefault;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "email_verification", indexes = {
-        @Index(name = "idx_email_verification_lookup", columnList = "email, used, type, created_date")
-})
+@Table(
+        name = "email_verification",
+        indexes = {@Index(name = "idx_email_verification_lookup", columnList = "email, used, type, created_date")})
 public class EmailVerificationEntity extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

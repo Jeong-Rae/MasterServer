@@ -1,5 +1,12 @@
 package org.codequistify.master.domain.lab.client;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import org.codequistify.master.domain.player.domain.vo.PlayerId;
+import org.codequistify.master.domain.stage.domain.StageImageType;
 import org.codequistify.master.domain.stage.dto.StageActionRequest;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
@@ -14,11 +21,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class LabApiClientTest {
@@ -39,30 +41,28 @@ class LabApiClientTest {
                 .thenReturn(ResponseEntity.ok(new SuccessResponse(true)));
 
         ResponseEntity<SuccessResponse> result = labApiClient.sendGradeRequest(
-                "StageA",
-                "player-id",
-                new StageActionRequest("StageA", 1));
+                StageImageType.S1001, new PlayerId("player-id"), new StageActionRequest("StageA", 1));
 
         ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<HttpEntity<StageActionRequest>> entityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
-        org.mockito.Mockito.verify(webRequestClient).postForEntity(
-                urlCaptor.capture(),
-                entityCaptor.capture(),
-                org.mockito.ArgumentMatchers.eq(SuccessResponse.class));
+        org.mockito.Mockito.verify(webRequestClient)
+                .postForEntity(
+                        urlCaptor.capture(),
+                        entityCaptor.capture(),
+                        org.mockito.ArgumentMatchers.eq(SuccessResponse.class));
         assertThat(result.getBody().success()).isTrue();
-        assertThat(urlCaptor.getValue()).isEqualTo("https://lab.pol.or.kr/grade?uid=player-id&stage=stagea");
+        assertThat(urlCaptor.getValue()).isEqualTo("https://lab.pol.or.kr/grade?uid=player-id&stage=s1001");
         assertThat(entityCaptor.getValue().getBody().stageCode()).isEqualTo("stagea");
     }
 
     @Test
     void Lab_API가_5xx로_응답하면_FAIL_PROCEED를_던진다() {
         when(webRequestClient.postForEntity(any(String.class), any(HttpEntity.class), any()))
-                .thenReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new SuccessResponse(false)));
+                .thenReturn(
+                        ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new SuccessResponse(false)));
 
         assertThatThrownBy(() -> labApiClient.sendComposeRequest(
-                "StageA",
-                "player-id",
-                new StageActionRequest("StageA", 1)))
+                        StageImageType.S1001, new PlayerId("player-id"), new StageActionRequest("StageA", 1)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.FAIL_PROCEED);

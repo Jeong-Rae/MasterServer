@@ -1,5 +1,7 @@
 package org.codequistify.master.domain.authentication.client;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.vo.OAuthAccessToken;
 import org.codequistify.master.global.http.WebRequestClient;
@@ -9,9 +11,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 @Component
 @RequiredArgsConstructor

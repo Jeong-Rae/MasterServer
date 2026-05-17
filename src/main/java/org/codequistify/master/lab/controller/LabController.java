@@ -3,17 +3,16 @@ package org.codequistify.master.domain.lab.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.lab.dto.PShellCreateResponse;
-import org.codequistify.master.domain.lab.dto.PShellExistsResponse;
-import org.codequistify.master.domain.lab.service.LabService;
+import org.codequistify.master.domain.lab.domain.VirtualWorkspace;
+import org.codequistify.master.domain.lab.dto.VirtualWorkspaceCreateResponse;
+import org.codequistify.master.domain.lab.dto.VirtualWorkspaceExistsResponse;
+import org.codequistify.master.domain.lab.service.VirtualWorkspaceService;
+import org.codequistify.master.domain.lab.vo.VirtualWorkspaceHost;
 import org.codequistify.master.domain.player.security.PlayerPrincipal;
 import org.codequistify.master.domain.stage.domain.Stage;
 import org.codequistify.master.domain.stage.service.impl.StageSearchServiceImpl;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
-import org.codequistify.master.global.lock.LockManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,112 +21,69 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.concurrent.locks.ReentrantLock;
-
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Lab")
 public class LabController {
-    private final LabService labService;
+    private final VirtualWorkspaceService virtualWorkspaceService;
     private final StageSearchServiceImpl stageSearchService;
-    private final LockManager lockManager;
 
-    private final String LAB_HOST = "wss://lab.pol.or.kr";
+    private static final VirtualWorkspaceHost LAB_HOST = VirtualWorkspaceHost.lab();
 
-    private final Logger LOGGER = LoggerFactory.getLogger(LabController.class);
+    @Operation(summary = "가상 워크스페이스 (VirtualWorkspace) 생성요청", description = """
+        :stage에 대한 워크스페이스(VirtualWorkspace)를 생성한다.
+        기존 터미널이 존재할경우, 제거하고 생성한다.
+        생성시에 네트워크 연결까지 약 10초 정도가 소요되며,
+        제거시에는 약 45s 이상이 소요된다.
 
-    @Operation(
-            summary = "가상 터미널 (PShell) 생성요청",
-            description = """
-                    :stage에 대한 터미널(PShell)을 생성한다.
-                    기존 터미널이 존재할경우, 제거하고 생성한다.
-                    생성시에 네트워크 연결까지 약 10초 정도가 소요되며, 
-                    제거시에는 약 45s 이상이 소요된다.
-                    
-                    사용시에는 쿼리파라미터 값을 추가해서 connection 연결을 보내야한다.
-                    """
-    )
+        사용시에는 쿼리파라미터 값을 추가해서 connection 연결을 보내야한다.
+        """)
     @LogMonitoring
     @PostMapping("lab/terminal/stage/{stage_id}")
-    public ResponseEntity<PShellCreateResponse> applyPShell(@AuthenticationPrincipal PlayerPrincipal principal,
-                                                            @PathVariable(name = "stage_id") Long stageId) {
-        ReentrantLock lock = lockManager.getLock(principal.id().value(), stageId);
-        if (lock.tryLock()) {
-            try {
-                Stage stage = stageSearchService.getStageById(stageId);
+    public ResponseEntity<VirtualWorkspaceCreateResponse> applyVirtualWorkspace(
+            @AuthenticationPrincipal PlayerPrincipal principal, @PathVariable(name = "stage_id") Long stageId) {
+        Stage stage = stageSearchService.getStageById(stageId);
 
-                labService.deleteSyncStageOnKubernetes(principal, stage); // 동기 삭제
-                labService.createStageOnKubernetes(principal, stage);
-
-                PShellCreateResponse response = PShellCreateResponse
-                        .of(LAB_HOST, principal.id().value(), stage.getStageImage().name().toLowerCase());
-
-                labService.waitForPodReadiness(principal, stage);
-
-                return ResponseEntity
-                        .status(HttpStatus.OK)
-                        .body(response);
-            } finally {
-                lockManager.unlock(principal.id().value(), stageId);
-            }
-        }
-
-        // 락 걸린 동안 들어오는 요청은 무시
-        LOGGER.info("[applyPShell] apply 작업중 중복된 요청 발생. stage: {}", stageId);
-        return ResponseEntity
-                .status(HttpStatus.TOO_MANY_REQUESTS)
-                .body(null);
-
+        return virtualWorkspaceService
+                .requestVirtualWorkspace(principal, stage)
+                .map(workspace -> ResponseEntity.ok(VirtualWorkspaceCreateResponse.from(workspace, LAB_HOST)))
+                .orElseGet(() ->
+                        ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(null));
     }
 
     // 접속 가능한 주소 조회
-    @Operation(
-            summary = "가상 터미널 (PShell) 접속 주소 & 쿼리파라미터 조회",
-            description = """
-                    :stage에 대한 터미널(PShell)에 접속할 수 있는 쿼리파라미터 정보를 조회한다.
-                    
-                    사용시에는 쿼리파라미터 값을 추가해서 connection 연결을 보내야한다.
-                    """
-    )
+    @Operation(summary = "가상 워크스페이스 (VirtualWorkspace) 접속 주소 & 쿼리파라미터 조회", description = """
+        :stage에 대한 워크스페이스(VirtualWorkspace)에 접속할 수 있는 쿼리파라미터 정보를 조회한다.
+
+        사용시에는 쿼리파라미터 값을 추가해서 connection 연결을 보내야한다.
+        """)
     @GetMapping("lab/terminal/access-url/{stage_id}")
     @LogMonitoring
-    public ResponseEntity<PShellCreateResponse> getPShellAccessUrl(@AuthenticationPrincipal PlayerPrincipal principal,
-                                                                   @PathVariable(name = "stage_id") Long stageId) {
+    public ResponseEntity<VirtualWorkspaceCreateResponse> getVirtualWorkspaceAccessUrl(
+            @AuthenticationPrincipal PlayerPrincipal principal, @PathVariable(name = "stage_id") Long stageId) {
         Stage stage = stageSearchService.getStageById(stageId);
+        VirtualWorkspace workspace = virtualWorkspaceService.getRunningVirtualWorkspace(principal, stage);
 
-        PShellCreateResponse response = PShellCreateResponse
-                .of(LAB_HOST, principal.id().value(), stage.getStageImage().name().toLowerCase());
+        VirtualWorkspaceCreateResponse response = VirtualWorkspaceCreateResponse.from(workspace, LAB_HOST);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(response);
+        return ResponseEntity.ok(response);
     }
 
-
     // 현재 터미널 존재 여부 조회
-    @Operation(
-            summary = "기존 가상 터미널 (PShell) 존재여부 조회",
-            description = """
-                    :stage에 대한 기존 터미널(PShell)이 존재하는지를 확인한다.
-                    """
-    )
+    @Operation(summary = "기존 가상 워크스페이스 (VirtualWorkspace) 존재여부 조회", description = """
+        :stage에 대한 기존 워크스페이스(VirtualWorkspace)가 존재하는지를 확인한다.
+        """)
     @LogExecutionTime
     @GetMapping("/lab/terminal/existence/{stage_id}")
-    public ResponseEntity<PShellExistsResponse> checkPShellExistence(@AuthenticationPrincipal PlayerPrincipal principal,
-                                                                     @PathVariable(name = "stage_id") Long stageId) {
+    public ResponseEntity<VirtualWorkspaceExistsResponse> checkVirtualWorkspaceExistence(
+            @AuthenticationPrincipal PlayerPrincipal principal, @PathVariable(name = "stage_id") Long stageId) {
         Stage stage = stageSearchService.getStageById(stageId);
 
-        boolean stageExists = labService.existsStageOnKubernetes(principal, stage);
+        boolean stageExists = virtualWorkspaceService.existsRunningVirtualWorkspace(principal, stage);
 
-        PShellExistsResponse response = new PShellExistsResponse(
-                principal.id().value(),
-                stageId,
-                stage.getStageImage().name(),
-                stageExists
-        );
+        VirtualWorkspaceExistsResponse response = new VirtualWorkspaceExistsResponse(
+                principal.id().value(), stageId, stage.getStageImage().name(), stageExists);
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(response);
+        return ResponseEntity.ok(response);
     }
 }

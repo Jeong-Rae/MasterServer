@@ -1,12 +1,12 @@
 package org.codequistify.master.domain.authentication.domain;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import jakarta.persistence.Entity;
 import org.codequistify.master.domain.authentication.vo.EmailVerificationId;
 import org.codequistify.master.domain.authentication.vo.VerificationCode;
 import org.codequistify.master.shared.vo.EmailAddress;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class EmailVerificationTest {
 

@@ -24,7 +24,8 @@ public class OAuthHttpClient {
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         try {
-            OAuthToken token = webRequestClient.postForObject(tokenUri, new HttpEntity<>(body, headers), OAuthToken.class);
+            OAuthToken token =
+                    webRequestClient.postForObject(tokenUri, new HttpEntity<>(body, headers), OAuthToken.class);
             if (token == null) {
                 throw new NullPointerException("OAuth token response body is null");
             }
@@ -39,12 +40,9 @@ public class OAuthHttpClient {
         headers.setBearerAuth(accessToken);
 
         try {
-            T body = webRequestClient.exchange(
-                    resourceUri,
-                    HttpMethod.GET,
-                    new HttpEntity<>(headers),
-                    responseType
-            ).getBody();
+            T body = webRequestClient
+                    .exchange(resourceUri, HttpMethod.GET, new HttpEntity<>(headers), responseType)
+                    .getBody();
             if (body == null) {
                 throw new NullPointerException("OAuth resource response body is null");
             }
@@ -55,6 +53,7 @@ public class OAuthHttpClient {
     }
 
     private BusinessException communicationFailure(RuntimeException exception) {
-        return new BusinessException(ErrorCode.OAUTH_COMMUNICATION_FAILURE, HttpStatus.INTERNAL_SERVER_ERROR, exception);
+        return new BusinessException(
+                ErrorCode.OAUTH_COMMUNICATION_FAILURE, HttpStatus.INTERNAL_SERVER_ERROR, exception);
     }
 }

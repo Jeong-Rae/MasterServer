@@ -1,5 +1,8 @@
 package org.codequistify.master.domain.authentication.service.impl;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.authentication.client.OAuthHttpClient;
 import org.codequistify.master.domain.authentication.service.OAuthStrategy;
@@ -20,10 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-
 @Service
 @RequiredArgsConstructor
 public class NaverOAuthStrategy implements OAuthStrategy {
@@ -38,11 +37,11 @@ public class NaverOAuthStrategy implements OAuthStrategy {
 
     @Override
     public String loginUrl() {
-        return "https://nid.naver.com/oauth2.0/authorize?" +
-                "client_id=" + oAuthKey.getNAVER_CLIENT_ID() +
-                "&redirect_uri=" + URLEncoder.encode(oAuthKey.getNAVER_REDIRECT_URI(), StandardCharsets.UTF_8) +
-                "&response_type=code" +
-                "&state=" + URLEncoder.encode("pol", StandardCharsets.UTF_8);
+        return "https://nid.naver.com/oauth2.0/authorize?" + "client_id="
+                + oAuthKey.getNAVER_CLIENT_ID() + "&redirect_uri="
+                + URLEncoder.encode(oAuthKey.getNAVER_REDIRECT_URI(), StandardCharsets.UTF_8) + "&response_type=code"
+                + "&state="
+                + URLEncoder.encode("pol", StandardCharsets.UTF_8);
     }
 
     @Override

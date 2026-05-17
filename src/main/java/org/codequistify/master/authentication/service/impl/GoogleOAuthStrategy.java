@@ -30,11 +30,10 @@ public class GoogleOAuthStrategy implements OAuthStrategy {
 
     @Override
     public String loginUrl() {
-        return "https://accounts.google.com/o/oauth2/auth?" +
-                "client_id=" + oAuthKey.getGOOGLE_CLIENT_ID() +
-                "&redirect_uri=" + oAuthKey.getGOOGLE_REDIRECT_URI() +
-                "&response_type=code" +
-                "&scope=email%20profile";
+        return "https://accounts.google.com/o/oauth2/auth?" + "client_id="
+                + oAuthKey.getGOOGLE_CLIENT_ID() + "&redirect_uri="
+                + oAuthKey.getGOOGLE_REDIRECT_URI() + "&response_type=code"
+                + "&scope=email%20profile";
     }
 
     @Override

@@ -2,14 +2,13 @@ package org.codequistify.master.domain.player.persistence;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.*;
 import org.codequistify.master.domain.player.domain.authentication.OAuthType;
 import org.codequistify.master.global.util.BaseTimeEntity;
 import org.codequistify.master.global.uuid.UUIDv7Generator;
 import org.hibernate.annotations.ColumnDefault;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @ToString

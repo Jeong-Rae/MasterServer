@@ -18,8 +18,7 @@ public class EmailVerification {
             VerificationCode code,
             boolean verified,
             boolean used,
-            EmailVerificationType type
-    ) {
+            EmailVerificationType type) {
         if (id == null) {
             id = EmailVerificationId.empty();
         }
@@ -34,11 +33,7 @@ public class EmailVerification {
         this.type = type;
     }
 
-    public static EmailVerification issue(
-            EmailAddress email,
-            VerificationCode code,
-            EmailVerificationType type
-    ) {
+    public static EmailVerification issue(EmailAddress email, VerificationCode code, EmailVerificationType type) {
         return new EmailVerification(EmailVerificationId.empty(), email, code, false, false, type);
     }
 

@@ -1,9 +1,9 @@
 package org.codequistify.master.domain.authentication.vo;
 
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import org.junit.jupiter.api.Test;
 
 class OAuthCodeTest {
 
@@ -16,13 +16,11 @@ class OAuthCodeTest {
 
     @Test
     void OAuth_Code가_비어있으면_예외를_던진다() {
-        assertThatThrownBy(() -> new OAuthCode(" "))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new OAuthCode(" ")).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void OAuth_Code가_null이면_예외를_던진다() {
-        assertThatThrownBy(() -> new OAuthCode(null))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new OAuthCode(null)).isInstanceOf(IllegalArgumentException.class);
     }
 }

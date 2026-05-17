@@ -3,18 +3,17 @@ package org.codequistify.master.domain.stage.domain;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
-import org.codequistify.master.global.util.BaseTimeEntity;
-import org.hibernate.annotations.ColumnDefault;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.*;
+import org.codequistify.master.global.util.BaseTimeEntity;
+import org.hibernate.annotations.ColumnDefault;
 
 @Getter
-@ToString(exclude = {"questions", "completedStages" })
+@ToString(exclude = {"questions", "completedStages"})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
@@ -45,7 +44,8 @@ public class Stage extends BaseTimeEntity {
     private DifficultyLevelType difficultyLevel;
 
     @Builder.Default
-    @Column(name = "count") @ColumnDefault("0")
+    @Column(name = "count")
+    @ColumnDefault("0")
     private Integer questionCount = 0;
 
     @Builder.Default
@@ -59,7 +59,8 @@ public class Stage extends BaseTimeEntity {
     private StageImageType stageImage;
 
     @Builder.Default
-    @Column(name = "approved") @ColumnDefault("false")
+    @Column(name = "approved")
+    @ColumnDefault("false")
     private Boolean approved = false;
 
     @Builder.Default
@@ -76,6 +77,7 @@ public class Stage extends BaseTimeEntity {
         this.questions = questions.stream()
                 .peek(question -> {
                     question.addStage(this);
-                }).collect(Collectors.toList());
+                })
+                .collect(Collectors.toList());
     }
 }

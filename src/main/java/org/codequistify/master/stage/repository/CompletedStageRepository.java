@@ -1,5 +1,7 @@
 package org.codequistify.master.domain.stage.repository;
 
+import java.util.List;
+import java.util.Optional;
 import org.codequistify.master.domain.stage.domain.CompletedStage;
 import org.codequistify.master.domain.stage.dto.HeatMapDataPoint;
 import org.codequistify.master.domain.stage.dto.StageCodeDTO;
@@ -8,19 +10,16 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
-
 @Repository
 public interface CompletedStageRepository extends JpaRepository<CompletedStage, Long> {
-    @Query("SELECT new org.codequistify.master.domain.stage.dto.StageCodeDTO(c.stage.stageImage, '') " +
-            "FROM CompletedStage c " +
-            "WHERE c.playerId = :playerId AND c.status = org.codequistify.master.domain.stage.domain.CompletedStatus.COMPLETED")
+    @Query("SELECT new org.codequistify.master.domain.stage.dto.StageCodeDTO(c.stage.stageImage, '') FROM"
+            + " CompletedStage c WHERE c.playerId = :playerId AND c.status ="
+            + " org.codequistify.master.domain.stage.domain.CompletedStatus.COMPLETED")
     List<StageCodeDTO> findCompletedStagesByPlayerId(@Param("playerId") String playerId);
 
-    @Query("SELECT new org.codequistify.master.domain.stage.dto.StageCodeDTO(c.stage.stageImage, '') " +
-            "FROM CompletedStage c " +
-            "WHERE c.playerId = :playerId AND c.status = org.codequistify.master.domain.stage.domain.CompletedStatus.IN_PROGRESS")
+    @Query("SELECT new org.codequistify.master.domain.stage.dto.StageCodeDTO(c.stage.stageImage, '') FROM"
+            + " CompletedStage c WHERE c.playerId = :playerId AND c.status ="
+            + " org.codequistify.master.domain.stage.domain.CompletedStatus.IN_PROGRESS")
     List<StageCodeDTO> findInProgressStagesByPlayerId(@Param("playerId") String playerId);
 
     // @Query("""
@@ -32,14 +31,11 @@ public interface CompletedStageRepository extends JpaRepository<CompletedStage, 
     //     WHERE cs.player.id = :playerId
     //     GROUP BY DATE(cs.modifiedDate)
     // """)
-    @Query(
-        value = """
+    @Query(value = """
             SELECT CAST(NULL AS DATE) AS date,
                 CAST(NULL AS BIGINT) AS count
             WHERE 1 = 0
-        """,
-        nativeQuery = true
-    )
+        """, nativeQuery = true)
     List<HeatMapDataPoint> countDataByModifiedDate(@Param("playerId") String playerId);
 
     Optional<CompletedStage> findByPlayerIdAndStageId(String playerId, Long stageId);

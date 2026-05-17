@@ -1,5 +1,10 @@
 package org.codequistify.master.domain.authentication.client;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import org.codequistify.master.domain.authentication.vo.OAuthToken;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
@@ -15,11 +20,6 @@ import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class OAuthHttpClientTest {
@@ -44,13 +44,16 @@ class OAuthHttpClientTest {
 
         OAuthToken result = oAuthHttpClient.requestToken("https://oauth.example/token", body);
 
-        ArgumentCaptor<HttpEntity<MultiValueMap<String, String>>> entityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
-        org.mockito.Mockito.verify(webRequestClient).postForObject(
-                org.mockito.ArgumentMatchers.eq("https://oauth.example/token"),
-                entityCaptor.capture(),
-                org.mockito.ArgumentMatchers.eq(OAuthToken.class));
+        ArgumentCaptor<HttpEntity<MultiValueMap<String, String>>> entityCaptor =
+                ArgumentCaptor.forClass(HttpEntity.class);
+        org.mockito.Mockito.verify(webRequestClient)
+                .postForObject(
+                        org.mockito.ArgumentMatchers.eq("https://oauth.example/token"),
+                        entityCaptor.capture(),
+                        org.mockito.ArgumentMatchers.eq(OAuthToken.class));
         assertThat(result).isEqualTo(token);
-        assertThat(entityCaptor.getValue().getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_FORM_URLENCODED);
+        assertThat(entityCaptor.getValue().getHeaders().getContentType())
+                .isEqualTo(MediaType.APPLICATION_FORM_URLENCODED);
         assertThat(entityCaptor.getValue().getBody().getFirst("code")).isEqualTo("authorization-code");
     }
 
@@ -59,7 +62,8 @@ class OAuthHttpClientTest {
         when(webRequestClient.postForObject(any(String.class), any(HttpEntity.class), any()))
                 .thenThrow(new RestClientException("timeout"));
 
-        assertThatThrownBy(() -> oAuthHttpClient.requestToken("https://oauth.example/token", new LinkedMultiValueMap<>()))
+        assertThatThrownBy(
+                        () -> oAuthHttpClient.requestToken("https://oauth.example/token", new LinkedMultiValueMap<>()))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.OAUTH_COMMUNICATION_FAILURE);

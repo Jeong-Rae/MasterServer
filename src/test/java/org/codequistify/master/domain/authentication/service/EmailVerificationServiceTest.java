@@ -1,5 +1,15 @@
 package org.codequistify.master.domain.authentication.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import org.codequistify.master.domain.authentication.domain.EmailVerification;
 import org.codequistify.master.domain.authentication.domain.EmailVerificationType;
 import org.codequistify.master.domain.authentication.mail.VerificationMailRequest;
@@ -15,17 +25,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.MailSendException;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class EmailVerificationServiceTest {
@@ -56,7 +55,8 @@ class EmailVerificationServiceTest {
         assertThat(mailCaptor.getValue().type()).isEqualTo(EmailVerificationType.REGISTRATION);
         assertThat(mailCaptor.getValue().code().value()).isNotBlank();
         assertThat(verificationCaptor.getValue().email().value()).isEqualTo("pol@example.com");
-        assertThat(verificationCaptor.getValue().code()).isEqualTo(mailCaptor.getValue().code());
+        assertThat(verificationCaptor.getValue().code())
+                .isEqualTo(mailCaptor.getValue().code());
     }
 
     @Test
@@ -79,7 +79,8 @@ class EmailVerificationServiceTest {
     void 인증메일_전송에_실패하면_EMAIL_SENDING_FAILURE를_던지고_저장하지_않는다() {
         doThrow(new MailSendException("fail")).when(verificationMailSender).send(any(VerificationMailRequest.class));
 
-        assertThatThrownBy(() -> emailVerificationService.sendVerifyMail("pol@example.com", EmailVerificationType.REGISTRATION))
+        assertThatThrownBy(() ->
+                        emailVerificationService.sendVerifyMail("pol@example.com", EmailVerificationType.REGISTRATION))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.EMAIL_SENDING_FAILURE);

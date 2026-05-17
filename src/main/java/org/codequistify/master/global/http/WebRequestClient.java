@@ -20,12 +20,7 @@ public class WebRequestClient {
         return restTemplate.postForEntity(url, request, responseType);
     }
 
-    public <T> ResponseEntity<T> exchange(
-            String url,
-            HttpMethod method,
-            HttpEntity<?> request,
-            Class<T> responseType
-    ) {
+    public <T> ResponseEntity<T> exchange(String url, HttpMethod method, HttpEntity<?> request, Class<T> responseType) {
         return restTemplate.exchange(url, method, request, responseType);
     }
 }

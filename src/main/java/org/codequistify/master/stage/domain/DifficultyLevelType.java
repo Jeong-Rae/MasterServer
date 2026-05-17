@@ -12,6 +12,7 @@ public enum DifficultyLevelType {
 
     private final int level;
     private final int exp;
+
     DifficultyLevelType(int level, int exp) {
         this.level = level;
         this.exp = exp;

@@ -4,10 +4,24 @@ import jakarta.servlet.http.Cookie;
 import org.codequistify.master.global.jwt.vo.IssuedTokens;
 
 enum TokenCookieSpec {
-    SERVICE_REFRESH("POL_REFRESH_TOKEN", "pol.or.kr", TokenCookieMaxAge.REFRESH_SECONDS, true, true, TokenCookieType.REFRESH),
-    SERVICE_ACCESS("POL_ACCESS_TOKEN", "pol.or.kr", TokenCookieMaxAge.ACCESS_SECONDS, true, true, TokenCookieType.ACCESS),
-    DEVELOPMENT_REFRESH("POL_REFRESH_TOKEN_DEV", "localhost", TokenCookieMaxAge.REFRESH_SECONDS, false, false, TokenCookieType.REFRESH),
-    DEVELOPMENT_ACCESS("POL_ACCESS_TOKEN_DEV", "localhost", TokenCookieMaxAge.ACCESS_SECONDS, false, false, TokenCookieType.ACCESS);
+    SERVICE_REFRESH(
+            "POL_REFRESH_TOKEN", "pol.or.kr", TokenCookieMaxAge.REFRESH_SECONDS, true, true, TokenCookieType.REFRESH),
+    SERVICE_ACCESS(
+            "POL_ACCESS_TOKEN", "pol.or.kr", TokenCookieMaxAge.ACCESS_SECONDS, true, true, TokenCookieType.ACCESS),
+    DEVELOPMENT_REFRESH(
+            "POL_REFRESH_TOKEN_DEV",
+            "localhost",
+            TokenCookieMaxAge.REFRESH_SECONDS,
+            false,
+            false,
+            TokenCookieType.REFRESH),
+    DEVELOPMENT_ACCESS(
+            "POL_ACCESS_TOKEN_DEV",
+            "localhost",
+            TokenCookieMaxAge.ACCESS_SECONDS,
+            false,
+            false,
+            TokenCookieType.ACCESS);
 
     private final String name;
     private final String domain;
@@ -51,8 +65,7 @@ enum TokenCookieSpec {
         private static final int ACCESS_SECONDS = 60 * 60;
         private static final int REFRESH_SECONDS = 7 * 24 * 60 * 60;
 
-        private TokenCookieMaxAge() {
-        }
+        private TokenCookieMaxAge() {}
     }
 
     private enum TokenCookieType {

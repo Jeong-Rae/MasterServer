@@ -1,16 +1,15 @@
 package org.codequistify.master.domain.player.persistence;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.util.List;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.domain.PlayerStatus;
 import org.codequistify.master.domain.player.domain.authentication.OAuthType;
 import org.codequistify.master.domain.player.domain.authorization.PlayerAccessType;
 import org.codequistify.master.domain.player.domain.authorization.PlayerRoleType;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class PlayerPersistenceMapperTest {
 
@@ -38,7 +37,8 @@ class PlayerPersistenceMapperTest {
         assertThat(player.id().value()).isEqualTo(entity.getId());
         assertThat(player.profile().name().value()).isEqualTo("pol");
         assertThat(player.authorization().hasRole(PlayerRoleType.PLAYER)).isTrue();
-        assertThat(player.authorization().hasAccess(PlayerAccessType.BASIC_PROBLEMS_ACCESS)).isTrue();
+        assertThat(player.authorization().hasAccess(PlayerAccessType.BASIC_PROBLEMS_ACCESS))
+                .isTrue();
         assertThat(player.status()).isEqualTo(PlayerStatus.ACTIVE);
         assertThat(mapped.getId()).isEqualTo(entity.getId());
         assertThat(mapped.getRoles()).isEqualTo(entity.getRoles());
@@ -59,7 +59,6 @@ class PlayerPersistenceMapperTest {
                 .locked(false)
                 .build();
 
-        assertThatThrownBy(() -> mapper.toDomain(entity))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> mapper.toDomain(entity)).isInstanceOf(IllegalArgumentException.class);
     }
 }

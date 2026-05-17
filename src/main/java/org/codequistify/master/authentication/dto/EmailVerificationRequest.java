@@ -6,6 +6,4 @@ import org.codequistify.master.domain.authentication.domain.EmailVerificationTyp
 
 public record EmailVerificationRequest(
         @Email(message = "4102") String email,
-        @NotNull(message = "4101") EmailVerificationType type
-) {
-}
+        @NotNull(message = "4101") EmailVerificationType type) {}

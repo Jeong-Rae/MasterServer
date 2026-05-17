@@ -1,5 +1,11 @@
 package org.codequistify.master.domain.authentication.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.vane.badwordfiltering.BadWordFiltering;
 import org.codequistify.master.domain.authentication.client.OAuthTokenRevocationClient;
 import org.codequistify.master.domain.player.domain.Player;
@@ -29,12 +35,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AuthenticationTokenReissueTest {
@@ -113,15 +113,8 @@ class AuthenticationTokenReissueTest {
     private Player playerWithRefreshToken(String refreshToken) {
         return Player.create(
                 new PlayerId("player-id"),
-                new PlayerProfile(
-                        new PlayerName("pol"),
-                        new PlayerEmail("pol@example.com"),
-                        new PlayerExperience(0)),
-                new PlayerAuthentication(
-                        new HashedPassword(""),
-                        null,
-                        new RefreshToken(refreshToken),
-                        null),
+                new PlayerProfile(new PlayerName("pol"), new PlayerEmail("pol@example.com"), new PlayerExperience(0)),
+                new PlayerAuthentication(new HashedPassword(""), null, new RefreshToken(refreshToken), null),
                 PlayerAuthorization.basicPlayer());
     }
 }

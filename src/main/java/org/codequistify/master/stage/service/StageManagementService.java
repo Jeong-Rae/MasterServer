@@ -15,7 +15,7 @@ public interface StageManagementService {
     GradingResponse evaluateAnswer(PlayerPrincipal principal, GradingRequest request);
 
     // 다음 문제 설정 구성
-    SuccessResponse composePShell(PlayerPrincipal principal, GradingRequest request);
+    SuccessResponse composeVirtualWorkspace(PlayerPrincipal principal, GradingRequest request);
 
     // 풀이 완료 기록
     StageCompletionResponse recordStageComplete(PlayerPrincipal principal, Long stageId);
@@ -26,11 +26,8 @@ public interface StageManagementService {
     // 문제 풀이 정보 기록
     public void updateInProgressStage(PlayerPrincipal principal, GradingRequest request);
 
-
     // 스테이지 수정
     // 스테이지 문항 수정
     // 스테이지 옵션 수정
-
-
 
 }

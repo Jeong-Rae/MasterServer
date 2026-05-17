@@ -6,6 +6,8 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Date;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.exception.ErrorCode;
@@ -19,9 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-import java.util.List;
-
 @Component
 @RequiredArgsConstructor
 public class TokenVerifier {
@@ -32,8 +31,7 @@ public class TokenVerifier {
         Claims claims = parseClaims(token);
         List<String> authorities = claims.get(TokenConstants.AUTHORITIES_CLAIM, List.class);
         return new AccessTokenClaims(
-                TokenAudience.from(claims.getAudience()),
-                TokenAuthorities.fromStoredAuthorities(authorities));
+                TokenAudience.from(claims.getAudience()), TokenAuthorities.fromStoredAuthorities(authorities));
     }
 
     public RefreshTokenClaims parseRefreshToken(String token) {

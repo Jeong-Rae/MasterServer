@@ -1,15 +1,14 @@
 package org.codequistify.master.domain.authentication.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.util.List;
 import org.codequistify.master.domain.authentication.vo.OAuthCode;
 import org.codequistify.master.domain.authentication.vo.OAuthData;
 import org.codequistify.master.domain.player.domain.authentication.OAuthType;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class OAuthStrategiesTest {
 
@@ -27,8 +26,7 @@ class OAuthStrategiesTest {
     void 등록되지_않은_OAuthType이면_예외를_던진다() {
         OAuthStrategies strategies = new OAuthStrategies(List.of(new StubOAuthStrategy(OAuthType.GOOGLE)));
 
-        assertThatThrownBy(() -> strategies.find(OAuthType.KAKAO))
-                .isInstanceOf(BusinessException.class);
+        assertThatThrownBy(() -> strategies.find(OAuthType.KAKAO)).isInstanceOf(BusinessException.class);
     }
 
     private record StubOAuthStrategy(OAuthType type) implements OAuthStrategy {

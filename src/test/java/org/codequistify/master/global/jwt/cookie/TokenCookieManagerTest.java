@@ -1,13 +1,13 @@
 package org.codequistify.master.global.jwt.cookie;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.codequistify.master.domain.player.domain.vo.RefreshToken;
 import org.codequistify.master.global.jwt.vo.AccessToken;
 import org.codequistify.master.global.jwt.vo.IssuedTokens;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.mock.web.MockHttpServletResponse;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class TokenCookieManagerTest {
     @Test
@@ -18,8 +18,7 @@ class TokenCookieManagerTest {
 
         tokenCookieManager.addTokenCookies(response, tokens);
 
-        assertThat(response.getCookies()).extracting("name")
-                .containsExactly("POL_REFRESH_TOKEN", "POL_ACCESS_TOKEN");
+        assertThat(response.getCookies()).extracting("name").containsExactly("POL_REFRESH_TOKEN", "POL_ACCESS_TOKEN");
         assertThat(response.getCookie("POL_REFRESH_TOKEN").getValue()).isEqualTo("refresh-token");
         assertThat(response.getCookie("POL_ACCESS_TOKEN").getValue()).isEqualTo("access-token");
     }
@@ -32,8 +31,7 @@ class TokenCookieManagerTest {
 
         tokenCookieManager.addTokenCookies(response, tokens);
 
-        assertThat(response.getCookies()).extracting("name")
-                .containsExactly("POL_REFRESH_TOKEN", "POL_ACCESS_TOKEN");
+        assertThat(response.getCookies()).extracting("name").containsExactly("POL_REFRESH_TOKEN", "POL_ACCESS_TOKEN");
     }
 
     @Test
@@ -44,7 +42,8 @@ class TokenCookieManagerTest {
 
         tokenCookieManager.addTokenCookies(response, tokens);
 
-        assertThat(response.getCookies()).extracting("name")
+        assertThat(response.getCookies())
+                .extracting("name")
                 .containsExactly("POL_REFRESH_TOKEN_DEV", "POL_ACCESS_TOKEN_DEV");
         assertThat(response.getCookie("POL_REFRESH_TOKEN_DEV").getValue()).isEqualTo("refresh-token");
         assertThat(response.getCookie("POL_ACCESS_TOKEN_DEV").getValue()).isEqualTo("access-token");
@@ -58,7 +57,8 @@ class TokenCookieManagerTest {
 
         tokenCookieManager.addTokenCookies(response, tokens);
 
-        assertThat(response.getCookies()).extracting("name")
+        assertThat(response.getCookies())
+                .extracting("name")
                 .containsExactly("POL_REFRESH_TOKEN_DEV", "POL_ACCESS_TOKEN_DEV");
     }
 
@@ -69,10 +69,10 @@ class TokenCookieManagerTest {
 
         tokenCookieManager.expireTokenCookies(response);
 
-        assertThat(response.getCookies()).extracting("name")
+        assertThat(response.getCookies())
+                .extracting("name")
                 .containsExactly("POL_REFRESH_TOKEN_DEV", "POL_ACCESS_TOKEN_DEV");
-        assertThat(response.getCookies()).extracting("maxAge")
-                .containsExactly(0, 0);
+        assertThat(response.getCookies()).extracting("maxAge").containsExactly(0, 0);
     }
 
     @Test
@@ -81,8 +81,7 @@ class TokenCookieManagerTest {
                 .isEqualTo("POL_REFRESH_TOKEN");
         assertThat(TokenCookieSpec.SERVICE_REFRESH.create("refresh-token").getValue())
                 .isEqualTo("refresh-token");
-        assertThat(TokenCookieSpec.SERVICE_REFRESH.expire().getMaxAge())
-                .isZero();
+        assertThat(TokenCookieSpec.SERVICE_REFRESH.expire().getMaxAge()).isZero();
     }
 
     private TokenCookieManager tokenCookieManager(String profile) {

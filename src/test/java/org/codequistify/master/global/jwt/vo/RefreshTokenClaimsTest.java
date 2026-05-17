@@ -1,8 +1,8 @@
 package org.codequistify.master.global.jwt.vo;
 
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
 
 class RefreshTokenClaimsTest {
 

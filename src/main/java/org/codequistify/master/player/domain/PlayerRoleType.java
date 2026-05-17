@@ -1,9 +1,8 @@
 package org.codequistify.master.domain.player.domain.authorization;
 
-import lombok.Getter;
-
 import java.util.Arrays;
 import java.util.Optional;
+import lombok.Getter;
 
 @Getter
 public enum PlayerRoleType {

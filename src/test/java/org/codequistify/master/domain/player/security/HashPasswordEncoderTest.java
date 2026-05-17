@@ -1,10 +1,10 @@
 package org.codequistify.master.domain.player.security;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.codequistify.master.domain.player.domain.vo.HashedPassword;
 import org.codequistify.master.domain.player.domain.vo.RawPassword;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class HashPasswordEncoderTest {
 
@@ -23,6 +23,7 @@ class HashPasswordEncoderTest {
         HashedPassword hashedPassword = hashPasswordEncoder.encode(rawPassword);
 
         assertThat(hashPasswordEncoder.matches(rawPassword, hashedPassword)).isTrue();
-        assertThat(hashPasswordEncoder.matches(new RawPassword("wrongpassword1!"), hashedPassword)).isFalse();
+        assertThat(hashPasswordEncoder.matches(new RawPassword("wrongpassword1!"), hashedPassword))
+                .isFalse();
     }
 }

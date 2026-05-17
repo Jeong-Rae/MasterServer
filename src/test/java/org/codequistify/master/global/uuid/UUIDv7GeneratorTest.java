@@ -1,11 +1,10 @@
 package org.codequistify.master.global.uuid;
 
-import org.junit.jupiter.api.Test;
-
-import java.util.UUID;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
 
 class UUIDv7GeneratorTest {
 

@@ -1,5 +1,8 @@
 package org.codequistify.master.domain.player.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import org.codequistify.master.domain.authentication.dto.LogInRequest;
 import org.codequistify.master.domain.authentication.dto.SignUpRequest;
 import org.codequistify.master.domain.authentication.service.AuthenticationService;
@@ -15,9 +18,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 @SuppressWarnings("NonAsciiCharacters")
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
@@ -28,8 +28,8 @@ class AuthenticationServiceTest {
     private final PlayerDetailsService playerDetailsService;
 
     @Autowired
-    public AuthenticationServiceTest(AuthenticationService authenticationService,
-                                     PlayerDetailsService playerDetailsService) {
+    public AuthenticationServiceTest(
+            AuthenticationService authenticationService, PlayerDetailsService playerDetailsService) {
         this.authenticationService = authenticationService;
         this.playerDetailsService = playerDetailsService;
     }
@@ -39,7 +39,6 @@ class AuthenticationServiceTest {
         SignUpRequest request = new SignUpRequest("A", "A@pol.or.kr", "password99763892*");
         PlayerProfile result = authenticationService.signUp(request);
     }
-
 
     @Test
     @Order(1)
@@ -116,7 +115,4 @@ class AuthenticationServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.INVALID_EMAIL_OR_PASSWORD.getMessage());
     }
-
-
-
 }

@@ -1,5 +1,7 @@
 package org.codequistify.master.domain.authentication.controller;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.authentication.domain.EmailVerificationType;
 import org.codequistify.master.domain.authentication.service.EmailVerificationService;
@@ -9,16 +11,18 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-
 @Controller
 @RequiredArgsConstructor
 public class EmailVerificationController {
     private final EmailVerificationService emailVerificationService;
+
     @GetMapping("home/auth/email/verify")
     @LogMonitoring
-    public String verifyMail(@RequestParam String email, @RequestParam String code, @RequestParam EmailVerificationType type, Model model) {
+    public String verifyMail(
+            @RequestParam String email,
+            @RequestParam String code,
+            @RequestParam EmailVerificationType type,
+            Model model) {
         if (email.isBlank() || code.isBlank() || type == null) {
             return "redirect:/home/failure";
         }

@@ -24,7 +24,6 @@ public class QuestionConverter {
                 question.getTitle(),
                 question.getDescription(),
                 question.getAnswerType(),
-                question.getOptions()
-        );
+                question.getOptions());
     }
 }

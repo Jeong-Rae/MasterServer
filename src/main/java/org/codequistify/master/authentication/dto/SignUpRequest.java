@@ -15,15 +15,11 @@ import org.codequistify.master.domain.player.domain.vo.PlayerName;
 public record SignUpRequest(
         @NotBlank String name,
         @NotBlank @Email(message = "4101") String email,
-        @NotBlank String password
-) {
+        @NotBlank String password) {
     public Player toPlayer() {
         return Player.create(
                 PlayerId.newId(),
-                new PlayerProfile(
-                        new PlayerName(name),
-                        new PlayerEmail(email),
-                        new PlayerExperience(0)),
+                new PlayerProfile(new PlayerName(name), new PlayerEmail(email), new PlayerExperience(0)),
                 PlayerAuthentication.local(new HashedPassword("")),
                 PlayerAuthorization.basicPlayer());
     }

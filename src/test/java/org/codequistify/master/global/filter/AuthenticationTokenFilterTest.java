@@ -1,6 +1,10 @@
 package org.codequistify.master.global.filter;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import jakarta.servlet.ServletException;
+import java.io.IOException;
+import java.util.List;
 import org.codequistify.master.domain.player.domain.authorization.PlayerAccessType;
 import org.codequistify.master.domain.player.domain.authorization.PlayerRoleType;
 import org.codequistify.master.domain.player.security.PlayerPrincipal;
@@ -20,11 +24,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.io.IOException;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 class AuthenticationTokenFilterTest {
 
     @AfterEach
@@ -40,8 +39,7 @@ class AuthenticationTokenFilterTest {
         AccessToken token = tokenIssuer.issueAccessToken(new AccessTokenClaims(
                 TokenAudience.from("player-id"),
                 TokenAuthorities.fromStoredAuthorities(List.of(
-                        PlayerRoleType.PLAYER.getRole(),
-                        PlayerAccessType.BASIC_PROBLEMS_ACCESS.getPermission()))));
+                        PlayerRoleType.PLAYER.getRole(), PlayerAccessType.BASIC_PROBLEMS_ACCESS.getPermission()))));
         AuthenticationTokenFilter filter = new AuthenticationTokenFilter(tokenVerifier);
         ReflectionTestUtils.setField(filter, "antMatchURIs", List.of("/api/auth"));
 

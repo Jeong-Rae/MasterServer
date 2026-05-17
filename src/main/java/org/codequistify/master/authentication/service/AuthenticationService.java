@@ -3,6 +3,9 @@ package org.codequistify.master.domain.authentication.service;
 import com.vane.badwordfiltering.BadWordFiltering;
 import io.jsonwebtoken.Claims;
 import jakarta.validation.Valid;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.authentication.client.OAuthTokenRevocationClient;
 import org.codequistify.master.domain.authentication.dto.LogInRequest;
@@ -22,8 +25,8 @@ import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.global.jwt.TokenIssuer;
 import org.codequistify.master.global.jwt.TokenVerifier;
-import org.codequistify.master.global.jwt.dto.TokenRequest;
 import org.codequistify.master.global.jwt.dto.TokenInfo;
+import org.codequistify.master.global.jwt.dto.TokenRequest;
 import org.codequistify.master.global.jwt.vo.AccessToken;
 import org.codequistify.master.global.jwt.vo.AccessTokenClaims;
 import org.codequistify.master.global.jwt.vo.IssuedTokens;
@@ -35,10 +38,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -57,15 +56,21 @@ public class AuthenticationService {
     @Transactional
     @LogMonitoring
     public PlayerProfile signUp(SignUpRequest request) {
-        playerDetailsService.checkOAuthType(request.email()) //기존 가입된 계정인지 확인
+        playerDetailsService
+                .checkOAuthType(request.email()) // 기존 가입된 계정인지 확인
                 .ifPresent(authType -> {
                     if (authType.equals(OAuthType.POL)) {
-                        LOGGER.info("[signUp] {} Email: {}", ErrorCode.EMAIL_ALREADY_EXISTS.getMessage(), request.email());
+                        LOGGER.info(
+                                "[signUp] {} Email: {}", ErrorCode.EMAIL_ALREADY_EXISTS.getMessage(), request.email());
                         throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
                     }
                     // 다른 방식으로 소셜로그인이 되어 있는 경우
-                    LOGGER.info("[signUp] {} Email: {}", ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH.getMessage(), request.email());
-                    throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH, HttpStatus.BAD_REQUEST, authType.name());
+                    LOGGER.info(
+                            "[signUp] {} Email: {}",
+                            ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH.getMessage(),
+                            request.email());
+                    throw new BusinessException(
+                            ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH, HttpStatus.BAD_REQUEST, authType.name());
                 });
         RawPassword rawPassword;
         try {
@@ -91,8 +96,7 @@ public class AuthenticationService {
             throw new BusinessException(ErrorCode.DUPLICATE_NAME, HttpStatus.BAD_REQUEST);
         }
 
-        Player player = request.toPlayer()
-                .withHashedPassword(hashPasswordEncoder.encode(rawPassword));
+        Player player = request.toPlayer().withHashedPassword(hashPasswordEncoder.encode(rawPassword));
         player = playerDetailsService.save(player);
 
         LOGGER.info("[signUp] Player: {}, 회원가입 완료", player.id().value());
@@ -146,7 +150,8 @@ public class AuthenticationService {
         RefreshTokenClaims refreshTokenClaims = tokenVerifier.parseRefreshToken(request.refreshToken());
         Player player;
         try {
-            player = playerDetailsService.findOnePlayerById(refreshTokenClaims.audience().value());
+            player = playerDetailsService.findOnePlayerById(
+                    refreshTokenClaims.audience().value());
         } catch (BusinessException exception) {
             throw new BusinessException(ErrorCode.INVALID_TOKEN, HttpStatus.UNAUTHORIZED);
         }
@@ -155,8 +160,7 @@ public class AuthenticationService {
         AccessToken accessToken = new AccessToken("");
         if (player.hasRefreshToken(requestedRefreshToken)) {
             accessToken = tokenIssuer.issueAccessToken(new AccessTokenClaims(
-                    new TokenAudience(player.id()),
-                    new TokenAuthorities(player.authorization())));
+                    new TokenAudience(player.id()), new TokenAuthorities(player.authorization())));
         }
 
         return IssuedTokens.of(requestedRefreshToken, accessToken);
@@ -181,5 +185,4 @@ public class AuthenticationService {
 
         return new TokenInfo(aud, roles, iat, exp, iss, valid);
     }
-
 }

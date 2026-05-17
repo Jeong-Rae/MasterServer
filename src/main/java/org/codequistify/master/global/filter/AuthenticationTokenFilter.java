@@ -4,6 +4,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.security.PlayerPrincipal;
 import org.codequistify.master.global.jwt.TokenVerifier;
@@ -16,10 +19,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
 @RequiredArgsConstructor
 public class AuthenticationTokenFilter extends OncePerRequestFilter {
@@ -30,7 +29,8 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
     private List<String> antMatchURIs = new ArrayList<>();
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         String path = request.getRequestURI();
 
         // 토큰 비검사 uri
@@ -44,8 +44,8 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
         String token = tokenVerifier.resolveToken(request);
         AccessTokenClaims claims = tokenVerifier.parseAccessToken(token);
         PlayerPrincipal principal = claims.toPrincipal();
-        UsernamePasswordAuthenticationToken authenticationToken
-                = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
 
         LOGGER.info("[AuthenticationTokenFilter] {}", authenticationToken);
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);

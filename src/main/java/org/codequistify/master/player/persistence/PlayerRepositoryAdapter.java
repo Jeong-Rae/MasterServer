@@ -1,5 +1,7 @@
 package org.codequistify.master.domain.player.persistence;
 
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.domain.authentication.OAuthType;
@@ -8,9 +10,6 @@ import org.codequistify.master.domain.player.domain.vo.PlayerId;
 import org.codequistify.master.domain.player.domain.vo.PlayerName;
 import org.codequistify.master.domain.player.domain.vo.RefreshToken;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
-import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -58,7 +57,8 @@ public class PlayerRepositoryAdapter implements PlayerRepository {
 
     @Override
     public void saveRefreshToken(PlayerId id, RefreshToken refreshToken) {
-        playerJpaRepository.findById(id.value())
+        playerJpaRepository
+                .findById(id.value())
                 .map(playerPersistenceMapper::toDomain)
                 .map(player -> player.updateRefreshToken(refreshToken))
                 .ifPresent(this::save);

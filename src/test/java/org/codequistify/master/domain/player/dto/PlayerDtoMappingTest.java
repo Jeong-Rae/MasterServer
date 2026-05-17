@@ -1,5 +1,7 @@
 package org.codequistify.master.domain.player.dto;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.codequistify.master.domain.authentication.dto.SignUpRequest;
 import org.codequistify.master.domain.authentication.vo.OAuthData;
 import org.codequistify.master.domain.authentication.vo.OAuthResource;
@@ -15,8 +17,6 @@ import org.codequistify.master.domain.player.domain.vo.PlayerExperience;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
 import org.codequistify.master.domain.player.domain.vo.PlayerName;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class PlayerDtoMappingTest {
 

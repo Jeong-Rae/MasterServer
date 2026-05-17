@@ -1,11 +1,10 @@
 package org.codequistify.master.domain.stage.service;
 
+import java.util.List;
 import org.codequistify.master.domain.player.dto.PlayerStageProgressResponse;
 import org.codequistify.master.domain.player.security.PlayerPrincipal;
 import org.codequistify.master.domain.stage.domain.Stage;
 import org.codequistify.master.domain.stage.dto.*;
-
-import java.util.List;
 
 public interface StageSearchService {
     // 스테이지 조회
@@ -25,7 +24,8 @@ public interface StageSearchService {
     // 완료한 날짜/횟수 기록 조회
     List<HeatMapDataPoint> getHeatMapDataPointsByModifiedDate(String playerId);
 
-    //preview 메서드
+    // preview 메서드
     StageResponse getStageByChoCho(String src);
+
     StageResponse getStageBySearchText(String searchText);
 }

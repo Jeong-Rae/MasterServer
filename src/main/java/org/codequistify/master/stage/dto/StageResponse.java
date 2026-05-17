@@ -12,5 +12,4 @@ public record StageResponse(
         StageGroupType stageGroupType,
         DifficultyLevelType difficultyLevelType,
         Integer questionCount,
-        CompletedStatus completedStatus) {
-}
+        CompletedStatus completedStatus) {}

@@ -6,6 +6,5 @@ final class TokenConstants {
     static final String AUTHORIZATION_HEADER = "Authorization";
     static final String BEARER_PREFIX = "Bearer ";
 
-    private TokenConstants() {
-    }
+    private TokenConstants() {}
 }

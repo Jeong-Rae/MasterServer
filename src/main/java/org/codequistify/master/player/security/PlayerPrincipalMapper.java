@@ -7,8 +7,6 @@ import org.springframework.stereotype.Component;
 public class PlayerPrincipalMapper {
     public PlayerPrincipal toPrincipal(Player player) {
         return new PlayerPrincipal(
-                player.id(),
-                player.authorization(),
-                player.status().locked());
+                player.id(), player.authorization(), player.status().locked());
     }
 }

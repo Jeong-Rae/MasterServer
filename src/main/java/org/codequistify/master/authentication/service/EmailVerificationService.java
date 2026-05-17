@@ -38,10 +38,7 @@ public class EmailVerificationService {
         try {
             EmailAddress emailAddress = new EmailAddress(email);
             VerificationCode authCode = VerificationCode.issue(emailAddress, mailSecret());
-            verificationMailSender.send(new VerificationMailRequest(
-                    emailAddress,
-                    authCode,
-                    emailVerificationType));
+            verificationMailSender.send(new VerificationMailRequest(emailAddress, authCode, emailVerificationType));
             LOGGER.info("[sendVerifyMail] {}로 메일 전송 완료", email);
 
             emailVerificationRepository.save(EmailVerification.issue(emailAddress, authCode, emailVerificationType));
@@ -67,7 +64,8 @@ public class EmailVerificationService {
     @LogMonitoring
     @Transactional
     public void updateVerification(String email, EmailVerificationType type) {
-        emailVerificationRepository.findLatestByEmailAndUsedAndType(new EmailAddress(email), false, type)
+        emailVerificationRepository
+                .findLatestByEmailAndUsedAndType(new EmailAddress(email), false, type)
                 .map(EmailVerification::verify)
                 .ifPresent(emailVerificationRepository::save);
     }
@@ -89,8 +87,9 @@ public class EmailVerificationService {
     @LogMonitoring
     @Transactional
     public EmailVerification getEmailVerificationByEmail(String email, Boolean used, EmailVerificationType type) {
-        return emailVerificationRepository.findLatestByEmailAndUsedAndType(new EmailAddress(email), used, type)
-                .orElseThrow(()->{
+        return emailVerificationRepository
+                .findLatestByEmailAndUsedAndType(new EmailAddress(email), used, type)
+                .orElseThrow(() -> {
                     LOGGER.info("[getEmailVerificationByEmail] {}에 대한 미사용 메일 인증 정보 없음", email);
                     return new BusinessException(ErrorCode.EMAIL_VERIFIED_FAILURE, HttpStatus.BAD_REQUEST);
                 });

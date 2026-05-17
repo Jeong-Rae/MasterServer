@@ -7,6 +7,4 @@ public record OAuthToken(
         Long refresh_token_expires_in,
         String scope,
         String token_type,
-        String id_token
-) {
-}
+        String id_token) {}

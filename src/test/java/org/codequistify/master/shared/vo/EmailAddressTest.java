@@ -1,9 +1,9 @@
 package org.codequistify.master.shared.vo;
 
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import org.junit.jupiter.api.Test;
 
 class EmailAddressTest {
 
@@ -16,7 +16,6 @@ class EmailAddressTest {
 
     @Test
     void Email_형식이_아니면_예외를_던진다() {
-        assertThatThrownBy(() -> new EmailAddress("not-email"))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new EmailAddress("not-email")).isInstanceOf(IllegalArgumentException.class);
     }
 }

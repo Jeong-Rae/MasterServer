@@ -1,5 +1,6 @@
 package org.codequistify.master.domain.player.security;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.domain.PlayerStatusTransition;
@@ -22,8 +23,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -51,8 +50,8 @@ public class PlayerDetailsService implements UserDetailsService {
     @LogMonitoring
     public void resetPassword(PlayerPrincipal principal, UpdatePasswordRequest request) {
         RawPassword rawPassword = middleLevelPassword(request.password());
-        Player player = findOnePlayerById(principal.id().value())
-                .withHashedPassword(hashPasswordEncoder.encode(rawPassword));
+        Player player =
+                findOnePlayerById(principal.id().value()).withHashedPassword(hashPasswordEncoder.encode(rawPassword));
         playerRepository.save(player);
         LOGGER.info("[resetPassword] Player: {}, 비밀번호 초기화 성공", player.id().value());
     }
@@ -87,20 +86,18 @@ public class PlayerDetailsService implements UserDetailsService {
 
     @Transactional
     public Player findOnePlayerByEmail(String email) {
-        return playerRepository.findPlayerByEmail(new PlayerEmail(email))
-                .orElseThrow(() -> {
-                    LOGGER.info("[findOnePlayerByEmail] 존재하지 않는 email 입니다. email: {}", email);
-                    return new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.BAD_REQUEST);
-                });
+        return playerRepository.findPlayerByEmail(new PlayerEmail(email)).orElseThrow(() -> {
+            LOGGER.info("[findOnePlayerByEmail] 존재하지 않는 email 입니다. email: {}", email);
+            return new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.BAD_REQUEST);
+        });
     }
 
     @Transactional
     public Player findOnePlayerById(String id) {
-        return playerRepository.findPlayerById(new PlayerId(id))
-                .orElseThrow(() -> {
-                    LOGGER.info("[findOnePlayerById] 존재하지 않는 player 입니다. id: {}", id);
-                    return new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.BAD_REQUEST);
-                });
+        return playerRepository.findPlayerById(new PlayerId(id)).orElseThrow(() -> {
+            LOGGER.info("[findOnePlayerById] 존재하지 않는 player 입니다. id: {}", id);
+            return new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.BAD_REQUEST);
+        });
     }
 
     @Transactional
@@ -116,7 +113,8 @@ public class PlayerDetailsService implements UserDetailsService {
     }
 
     public boolean matchesPassword(String rawPassword, Player player) {
-        return hashPasswordEncoder.matches(new RawPassword(rawPassword), player.authentication().hashedPassword());
+        return hashPasswordEncoder.matches(
+                new RawPassword(rawPassword), player.authentication().hashedPassword());
     }
 
     private RawPassword middleLevelPassword(String rawPassword) {

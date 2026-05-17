@@ -2,6 +2,8 @@ package org.codequistify.master.global.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import java.util.Date;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.authorization.PlayerRoleType;
 import org.codequistify.master.domain.player.domain.vo.RefreshToken;
@@ -11,9 +13,6 @@ import org.codequistify.master.global.jwt.vo.RefreshTokenClaims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.util.Date;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -26,7 +25,9 @@ public class TokenIssuer {
 
     public AccessToken issueAccessToken(AccessTokenClaims accessTokenClaims) {
         Claims claims = Jwts.claims();
-        claims.put(TokenConstants.AUTHORITIES_CLAIM, accessTokenClaims.authorities().storedAuthorities());
+        claims.put(
+                TokenConstants.AUTHORITIES_CLAIM,
+                accessTokenClaims.authorities().storedAuthorities());
         Date now = new Date();
 
         String token = Jwts.builder()

@@ -12,10 +12,7 @@ import org.codequistify.master.domain.player.domain.vo.PlayerExperience;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
 import org.codequistify.master.domain.player.domain.vo.PlayerName;
 
-public record OAuthData(
-        OAuthToken token,
-        OAuthResource resource
-) {
+public record OAuthData(OAuthToken token, OAuthResource resource) {
     public static OAuthData of(OAuthToken token, OAuthResource resource) {
         return new OAuthData(token, resource);
     }
@@ -24,14 +21,9 @@ public record OAuthData(
         return Player.create(
                 PlayerId.newId(),
                 new PlayerProfile(
-                        new PlayerName(resource.name()),
-                        new PlayerEmail(resource.email()),
-                        new PlayerExperience(0)),
+                        new PlayerName(resource.name()), new PlayerEmail(resource.email()), new PlayerExperience(0)),
                 new PlayerAuthentication(
-                        new HashedPassword(""),
-                        OAuthIdentity.of(oAuthType, resource.id()),
-                        null,
-                        null),
+                        new HashedPassword(""), OAuthIdentity.of(oAuthType, resource.id()), null, null),
                 PlayerAuthorization.basicPlayer());
     }
 }

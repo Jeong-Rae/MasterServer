@@ -1,12 +1,11 @@
 package org.codequistify.master.domain.authentication.persistence;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import org.junit.jupiter.api.Test;
-
 import java.util.Arrays;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class EmailVerificationEntityTest {
 
@@ -14,8 +13,7 @@ class EmailVerificationEntityTest {
     void EmailVerification_Entity는_메일_인증_조회용_복합_Index를_가진다() {
         Table table = EmailVerificationEntity.class.getAnnotation(Table.class);
 
-        boolean hasLookupIndex = Arrays.stream(table.indexes())
-                .anyMatch(this::isEmailVerificationLookupIndex);
+        boolean hasLookupIndex = Arrays.stream(table.indexes()).anyMatch(this::isEmailVerificationLookupIndex);
 
         assertThat(hasLookupIndex).isTrue();
     }

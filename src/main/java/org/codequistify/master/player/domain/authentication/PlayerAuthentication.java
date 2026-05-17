@@ -8,8 +8,7 @@ public record PlayerAuthentication(
         HashedPassword hashedPassword,
         OAuthIdentity oauthIdentity,
         RefreshToken refreshToken,
-        OAuthAccessToken oauthAccessToken
-) {
+        OAuthAccessToken oauthAccessToken) {
     public PlayerAuthentication {
         if (hashedPassword == null) {
             hashedPassword = new HashedPassword("");
@@ -26,7 +25,8 @@ public record PlayerAuthentication(
     }
 
     public static PlayerAuthentication local(HashedPassword hashedPassword) {
-        return new PlayerAuthentication(hashedPassword, OAuthIdentity.local(), new RefreshToken(""), new OAuthAccessToken(""));
+        return new PlayerAuthentication(
+                hashedPassword, OAuthIdentity.local(), new RefreshToken(""), new OAuthAccessToken(""));
     }
 
     public PlayerAuthentication withHashedPassword(HashedPassword hashedPassword) {

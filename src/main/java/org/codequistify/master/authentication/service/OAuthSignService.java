@@ -37,7 +37,8 @@ public class OAuthSignService {
 
     private Player findOrCreatePlayer(OAuthType type, OAuthData oAuthData) {
         try {
-            return playerDetailsService.findOnePlayerByEmail(oAuthData.resource().email());
+            return playerDetailsService.findOnePlayerByEmail(
+                    oAuthData.resource().email());
         } catch (BusinessException exception) {
             if (exception.getErrorCode() != ErrorCode.PLAYER_NOT_FOUND) {
                 throw exception;

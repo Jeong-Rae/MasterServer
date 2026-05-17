@@ -1,13 +1,13 @@
 package org.codequistify.master.domain.authentication.persistence;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.codequistify.master.domain.authentication.domain.EmailVerification;
 import org.codequistify.master.domain.authentication.domain.EmailVerificationType;
 import org.codequistify.master.domain.authentication.vo.EmailVerificationId;
 import org.codequistify.master.domain.authentication.vo.VerificationCode;
 import org.codequistify.master.shared.vo.EmailAddress;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class EmailVerificationPersistenceMapperTest {
 

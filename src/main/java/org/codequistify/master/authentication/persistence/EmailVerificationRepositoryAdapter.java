@@ -1,13 +1,12 @@
 package org.codequistify.master.domain.authentication.persistence;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.authentication.domain.EmailVerification;
 import org.codequistify.master.domain.authentication.domain.EmailVerificationType;
 import org.codequistify.master.domain.authentication.repository.EmailVerificationRepository;
 import org.codequistify.master.shared.vo.EmailAddress;
 import org.springframework.stereotype.Repository;
-
-import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -17,17 +16,14 @@ public class EmailVerificationRepositoryAdapter implements EmailVerificationRepo
 
     @Override
     public EmailVerification save(EmailVerification emailVerification) {
-        EmailVerificationEntity saved = emailVerificationJpaRepository.save(
-                emailVerificationPersistenceMapper.toEntity(emailVerification));
+        EmailVerificationEntity saved =
+                emailVerificationJpaRepository.save(emailVerificationPersistenceMapper.toEntity(emailVerification));
         return emailVerificationPersistenceMapper.toDomain(saved);
     }
 
     @Override
     public Optional<EmailVerification> findLatestByEmailAndUsedAndType(
-            EmailAddress email,
-            Boolean used,
-            EmailVerificationType type
-    ) {
+            EmailAddress email, Boolean used, EmailVerificationType type) {
         return emailVerificationJpaRepository
                 .findFirstByEmailAndUsedAndEmailVerificationTypeOrderByCreatedDateDesc(email.value(), used, type)
                 .map(emailVerificationPersistenceMapper::toDomain);

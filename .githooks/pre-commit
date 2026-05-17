@@ -1,0 +1,14 @@
+#!/bin/sh
+
+set -e
+
+echo "Running Java Format..."
+
+./gradlew spotlessApply
+
+if ! git diff --quiet; then
+  echo "Formatted files changed. Staging formatted files..."
+  git add .
+fi
+
+echo "Format completed."

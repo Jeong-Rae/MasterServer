@@ -1,9 +1,9 @@
 package org.codequistify.master.domain.player.domain.vo;
 
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import org.junit.jupiter.api.Test;
 
 class PlayerNameTest {
 
@@ -16,13 +16,11 @@ class PlayerNameTest {
 
     @Test
     void 특수문자가_포함된_이름을_생성하면_예외를_던진다() {
-        assertThatThrownBy(() -> new PlayerName("player!"))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new PlayerName("player!")).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void 공백_이름을_생성하면_예외를_던진다() {
-        assertThatThrownBy(() -> new PlayerName(" "))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new PlayerName(" ")).isInstanceOf(IllegalArgumentException.class);
     }
 }

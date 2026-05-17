@@ -2,6 +2,9 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.13'
     id 'io.spring.dependency-management' version '1.1.7'
+
+    id 'com.diffplug.spotless' version '8.5.1'
+    id 'com.palantir.java-format-spotless' version '2.90.0'
 }
 
 group = 'org.codequistify'
@@ -83,4 +86,10 @@ tasks.named('test') {
 
 tasks.named('jar') {
     enabled = false
+}
+
+spotless {
+    java {
+        target 'src/**/*.java'
+    }
 }

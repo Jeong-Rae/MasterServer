@@ -1,8 +1,11 @@
 package org.codequistify.master.domain.player.domain;
 
-import org.codequistify.master.domain.player.domain.authentication.PlayerAuthentication;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import org.codequistify.master.domain.player.domain.authentication.OAuthIdentity;
 import org.codequistify.master.domain.player.domain.authentication.OAuthType;
+import org.codequistify.master.domain.player.domain.authentication.PlayerAuthentication;
 import org.codequistify.master.domain.player.domain.authorization.PlayerAccessType;
 import org.codequistify.master.domain.player.domain.authorization.PlayerAccesses;
 import org.codequistify.master.domain.player.domain.authorization.PlayerAuthorization;
@@ -18,19 +21,13 @@ import org.codequistify.master.domain.player.domain.vo.PlayerName;
 import org.codequistify.master.domain.player.domain.vo.RefreshToken;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class PlayerDomainModelTest {
 
     @Test
     void 플레이어를_생성하면_프로필_인증_인가_상태를_분리해_보관한다() {
         Player player = Player.create(
                 PlayerId.newId(),
-                new PlayerProfile(
-                        new PlayerName("pol"),
-                        new PlayerEmail("pol@example.com"),
-                        new PlayerExperience(0)),
+                new PlayerProfile(new PlayerName("pol"), new PlayerEmail("pol@example.com"), new PlayerExperience(0)),
                 PlayerAuthentication.local(new HashedPassword("{bcrypt}encoded")),
                 PlayerAuthorization.basicPlayer());
 
@@ -38,7 +35,8 @@ class PlayerDomainModelTest {
         assertThat(player.profile().email().value()).isEqualTo("pol@example.com");
         assertThat(player.authentication().hashedPassword().value()).isEqualTo("{bcrypt}encoded");
         assertThat(player.authorization().hasRole(PlayerRoleType.PLAYER)).isTrue();
-        assertThat(player.authorization().hasAccess(PlayerAccessType.BASIC_PROBLEMS_ACCESS)).isTrue();
+        assertThat(player.authorization().hasAccess(PlayerAccessType.BASIC_PROBLEMS_ACCESS))
+                .isTrue();
         assertThat(player.status()).isEqualTo(PlayerStatus.ACTIVE);
     }
 

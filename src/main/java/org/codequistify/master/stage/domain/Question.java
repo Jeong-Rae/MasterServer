@@ -3,12 +3,11 @@ package org.codequistify.master.domain.stage.domain;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.*;
 import org.codequistify.master.global.util.BaseTimeEntity;
 import org.hibernate.annotations.ColumnDefault;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @ToString(exclude = "stage")
@@ -16,15 +15,17 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "question",
-        indexes = {
-                @Index(name = "idx_stageid_questionindex", columnList = "stage_id, question_index")
-        },
+@Table(
+        name = "question",
+        indexes = {@Index(name = "idx_stageid_questionindex", columnList = "stage_id, question_index")},
         uniqueConstraints = {
-                @UniqueConstraint(name = "uc_stageid_questionindex", columnNames = {"stage_id", "question_index"})
+            @UniqueConstraint(
+                    name = "uc_stageid_questionindex",
+                    columnNames = {"stage_id", "question_index"})
         })
 public class Question extends BaseTimeEntity {
-    @Id @GeneratedValue(strategy = GenerationType.AUTO)
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "question_id")
     private Long id;
 
@@ -79,8 +80,8 @@ public class Question extends BaseTimeEntity {
     public void addStage(Stage stage) {
         this.stage = stage;
     }
+
     public void setIndex(int index) {
         this.index = index;
     }
-
 }

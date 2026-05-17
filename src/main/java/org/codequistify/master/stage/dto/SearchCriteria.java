@@ -1,13 +1,12 @@
 package org.codequistify.master.domain.stage.dto;
 
 import jakarta.validation.constraints.Positive;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 import org.codequistify.master.domain.stage.domain.CompletedStatus;
 import org.codequistify.master.domain.stage.domain.DifficultyLevelType;
 import org.codequistify.master.domain.stage.domain.StageGroupType;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Data
 public class SearchCriteria {

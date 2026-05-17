@@ -2,6 +2,8 @@ package org.codequistify.master.domain.lab.service;
 
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.lab.client.LabApiClient;
+import org.codequistify.master.domain.player.domain.vo.PlayerId;
+import org.codequistify.master.domain.stage.domain.StageImageType;
 import org.codequistify.master.domain.stage.dto.StageActionRequest;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.util.SuccessResponse;
@@ -17,13 +19,15 @@ public class LabAssignmentService {
     private final Logger LOGGER = LoggerFactory.getLogger(LabAssignmentService.class);
 
     @LogExecutionTime
-    public ResponseEntity<SuccessResponse> sendGradingRequest(String stageCode, String uid, StageActionRequest request) {
+    public ResponseEntity<SuccessResponse> sendGradingRequest(
+            StageImageType stageImage, PlayerId playerId, StageActionRequest request) {
         LOGGER.info("Request Data: {}", request);
-        return labApiClient.sendGradeRequest(stageCode, uid, request);
+        return labApiClient.sendGradeRequest(stageImage, playerId, request);
     }
 
     @LogExecutionTime
-    public ResponseEntity<SuccessResponse> sendComposeRequest(String stageCode, String uid, StageActionRequest request) {
-        return labApiClient.sendComposeRequest(stageCode, uid, request);
+    public ResponseEntity<SuccessResponse> sendComposeRequest(
+            StageImageType stageImage, PlayerId playerId, StageActionRequest request) {
+        return labApiClient.sendComposeRequest(stageImage, playerId, request);
     }
 }

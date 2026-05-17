@@ -3,16 +3,15 @@ package org.codequistify.master.domain.authentication.mail;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.authentication.domain.EmailVerificationType;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.MailPreparationException;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor

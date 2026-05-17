@@ -1,11 +1,10 @@
 package org.codequistify.master.domain.authentication.vo;
 
-import org.codequistify.master.shared.vo.EmailAddress;
-
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import org.codequistify.master.shared.vo.EmailAddress;
 
 public record VerificationCode(String value) {
     public VerificationCode {

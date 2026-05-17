@@ -1,5 +1,6 @@
 package org.codequistify.master.domain.authentication.service.impl;
 
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.authentication.client.OAuthHttpClient;
 import org.codequistify.master.domain.authentication.service.OAuthStrategy;
@@ -20,8 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.util.Map;
-
 @Service
 @RequiredArgsConstructor
 public class KakaoOAuthStrategy implements OAuthStrategy {
@@ -36,9 +35,9 @@ public class KakaoOAuthStrategy implements OAuthStrategy {
 
     @Override
     public String loginUrl() {
-        return "https://kauth.kakao.com/oauth/authorize?response_type=code" +
-                "&client_id=" + oAuthKey.getKAKAO_CLIENT_ID() +
-                "&redirect_uri=" + oAuthKey.getKAKAO_REDIRECT_URI();
+        return "https://kauth.kakao.com/oauth/authorize?response_type=code" + "&client_id="
+                + oAuthKey.getKAKAO_CLIENT_ID() + "&redirect_uri="
+                + oAuthKey.getKAKAO_REDIRECT_URI();
     }
 
     @Override

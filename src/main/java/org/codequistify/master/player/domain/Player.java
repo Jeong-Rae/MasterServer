@@ -13,8 +13,7 @@ public record Player(
         PlayerProfile profile,
         PlayerAuthentication authentication,
         PlayerAuthorization authorization,
-        PlayerStatus status
-) {
+        PlayerStatus status) {
     public Player {
         if (id == null || profile == null || authentication == null || authorization == null || status == null) {
             throw new IllegalArgumentException("player aggregate fields must not be null");
@@ -25,8 +24,7 @@ public record Player(
             PlayerId id,
             PlayerProfile profile,
             PlayerAuthentication authentication,
-            PlayerAuthorization authorization
-    ) {
+            PlayerAuthorization authorization) {
         return new Player(id, profile, authentication, authorization, PlayerStatus.ACTIVE);
     }
 
@@ -69,6 +67,7 @@ public record Player(
     public Player transition(PlayerStatusTransition transition) {
         PlayerStatus next = transition.apply(status);
         PlayerProfile nextProfile = next == PlayerStatus.DELETED ? profile.clearPersonalInformation() : profile;
-        return new Player(id, nextProfile, authentication.clearOAuthAccessToken().clearRefreshToken(), authorization, next);
+        return new Player(
+                id, nextProfile, authentication.clearOAuthAccessToken().clearRefreshToken(), authorization, next);
     }
 }

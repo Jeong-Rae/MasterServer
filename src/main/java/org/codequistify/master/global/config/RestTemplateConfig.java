@@ -30,8 +30,7 @@ public class RestTemplateConfig {
                 .setDefaultRequestConfig(requestConfig)
                 .build();
 
-        return builder
-                .requestFactory(() -> new HttpComponentsClientHttpRequestFactory(closeableHttpClient))
+        return builder.requestFactory(() -> new HttpComponentsClientHttpRequestFactory(closeableHttpClient))
                 .build();
     }
 }

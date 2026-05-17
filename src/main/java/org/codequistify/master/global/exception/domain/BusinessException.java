@@ -5,7 +5,7 @@ import org.codequistify.master.global.exception.ErrorCode;
 import org.springframework.http.HttpStatus;
 
 @Getter
-public class BusinessException extends RuntimeException{
+public class BusinessException extends RuntimeException {
     private final HttpStatus httpStatus;
     private final ErrorCode errorCode;
     private final String detail;
@@ -44,7 +44,12 @@ public class BusinessException extends RuntimeException{
         this.detail = businessException.getDetail();
     }
 
-    public BusinessException(ErrorCode errorCode, HttpStatus httpStatus, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public BusinessException(
+            ErrorCode errorCode,
+            HttpStatus httpStatus,
+            Throwable cause,
+            boolean enableSuppression,
+            boolean writableStackTrace) {
         super(errorCode.getMessage(), cause, enableSuppression, writableStackTrace);
         this.httpStatus = httpStatus;
         this.errorCode = errorCode;

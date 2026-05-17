@@ -1,5 +1,13 @@
 package org.codequistify.master.domain.authentication.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
 import org.codequistify.master.domain.authentication.vo.OAuthCode;
 import org.codequistify.master.domain.authentication.vo.OAuthData;
 import org.codequistify.master.domain.authentication.vo.OAuthResource;
@@ -27,15 +35,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class OAuthSignServiceTest {
 
@@ -48,9 +47,7 @@ class OAuthSignServiceTest {
     @BeforeEach
     void 테스트_대상을_준비한다() {
         strategy = new StubOAuthStrategy(OAuthType.GOOGLE);
-        oAuthSignService = new OAuthSignService(
-                new OAuthStrategies(List.of(strategy)),
-                playerDetailsService);
+        oAuthSignService = new OAuthSignService(new OAuthStrategies(List.of(strategy)), playerDetailsService);
     }
 
     @Test
@@ -66,9 +63,8 @@ class OAuthSignServiceTest {
         when(playerDetailsService.findOnePlayerByEmail("oauth@example.com")).thenReturn(player);
         when(playerDetailsService.save(any(Player.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        org.codequistify.master.domain.player.dto.PlayerProfile result = oAuthSignService.login(
-                OAuthType.GOOGLE,
-                new OAuthCode("authorization-code"));
+        org.codequistify.master.domain.player.dto.PlayerProfile result =
+                oAuthSignService.login(OAuthType.GOOGLE, new OAuthCode("authorization-code"));
 
         assertThat(result.id()).isEqualTo("existing-id");
         assertThat(result.email()).isEqualTo("oauth@example.com");
@@ -82,9 +78,8 @@ class OAuthSignServiceTest {
                 .thenThrow(new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.BAD_REQUEST));
         when(playerDetailsService.save(any(Player.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        org.codequistify.master.domain.player.dto.PlayerProfile result = oAuthSignService.login(
-                OAuthType.GOOGLE,
-                new OAuthCode("authorization-code"));
+        org.codequistify.master.domain.player.dto.PlayerProfile result =
+                oAuthSignService.login(OAuthType.GOOGLE, new OAuthCode("authorization-code"));
 
         assertThat(result.email()).isEqualTo("oauth@example.com");
         assertThat(result.name()).isEqualTo("oauthname");
@@ -104,9 +99,7 @@ class OAuthSignServiceTest {
         return new Player(
                 new PlayerId(id),
                 new PlayerProfile(
-                        new PlayerName("oauthname"),
-                        new PlayerEmail("oauth@example.com"),
-                        new PlayerExperience(0)),
+                        new PlayerName("oauthname"), new PlayerEmail("oauth@example.com"), new PlayerExperience(0)),
                 new PlayerAuthentication(
                         new HashedPassword(""),
                         OAuthIdentity.of(OAuthType.GOOGLE, oauthId),

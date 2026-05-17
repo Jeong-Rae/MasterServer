@@ -22,9 +22,7 @@ public record PlayerAuthorization(PlayerRoles roles, PlayerAccesses accesses) {
     }
 
     public List<String> toStoredAuthorities() {
-        return java.util.stream.Stream.concat(
-                        roles.storedAuthorities(),
-                        accesses.storedAuthorities())
+        return java.util.stream.Stream.concat(roles.storedAuthorities(), accesses.storedAuthorities())
                 .distinct()
                 .toList();
     }

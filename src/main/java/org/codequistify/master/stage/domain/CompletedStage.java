@@ -49,6 +49,5 @@ public class CompletedStage extends BaseTimeEntity {
         this.status = status;
     }
 
-    protected CompletedStage() {
-    }
+    protected CompletedStage() {}
 }

@@ -1,6 +1,5 @@
 package org.codequistify.master.global.config;
 
-
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.global.filter.AuthenticationTokenFilter;
 import org.codequistify.master.global.filter.BusinessExceptionHandlerFilter;
@@ -38,15 +37,25 @@ public class SecurityConfig {
                 // 폼 로그인 비활성화
                 .formLogin(form -> form.disable())
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("/home/**", "/index/**", "/index.js", "/favicon.ico", "/swagger-ui/**", "/v3/**", "/api/todo-list/**").permitAll()
-                        .requestMatchers("/h2-console/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .anyRequest().authenticated())
+                        .requestMatchers(
+                                "/home/**",
+                                "/index/**",
+                                "/index.js",
+                                "/favicon.ico",
+                                "/swagger-ui/**",
+                                "/v3/**",
+                                "/api/todo-list/**")
+                        .permitAll()
+                        .requestMatchers("/h2-console/**")
+                        .permitAll()
+                        .requestMatchers("/api/auth/**")
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated())
 
                 // jwt 인증 토큰 설정
                 .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(businessExceptionHandlerFilter, AuthenticationTokenFilter.class);
-
 
         return http.build();
     }

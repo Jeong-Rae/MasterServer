@@ -1,20 +1,19 @@
 package org.codequistify.master.global.jwt;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
 import org.codequistify.master.domain.player.domain.authorization.PlayerAccessType;
 import org.codequistify.master.domain.player.domain.authorization.PlayerRoleType;
 import org.codequistify.master.domain.player.domain.vo.RefreshToken;
-import org.codequistify.master.global.jwt.vo.AccessTokenClaims;
 import org.codequistify.master.global.jwt.vo.AccessToken;
+import org.codequistify.master.global.jwt.vo.AccessTokenClaims;
 import org.codequistify.master.global.jwt.vo.RefreshTokenClaims;
 import org.codequistify.master.global.jwt.vo.TokenAudience;
 import org.codequistify.master.global.jwt.vo.TokenAuthorities;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class TokenIssuerVerifierClaimsTest {
     private TokenIssuer tokenIssuer;
@@ -34,15 +33,15 @@ class TokenIssuerVerifierClaimsTest {
         AccessTokenClaims claims = new AccessTokenClaims(
                 TokenAudience.from("player-id"),
                 TokenAuthorities.fromStoredAuthorities(List.of(
-                        PlayerRoleType.PLAYER.getRole(),
-                        PlayerAccessType.BASIC_PROBLEMS_ACCESS.getPermission())));
+                        PlayerRoleType.PLAYER.getRole(), PlayerAccessType.BASIC_PROBLEMS_ACCESS.getPermission())));
 
         AccessToken token = tokenIssuer.issueAccessToken(claims);
         AccessTokenClaims result = tokenVerifier.parseAccessToken(token.value());
 
         assertThat(result.audience().value()).isEqualTo("player-id");
         assertThat(result.authorities().storedAuthorities())
-                .containsExactly(PlayerRoleType.PLAYER.getRole(), PlayerAccessType.BASIC_PROBLEMS_ACCESS.getPermission());
+                .containsExactly(
+                        PlayerRoleType.PLAYER.getRole(), PlayerAccessType.BASIC_PROBLEMS_ACCESS.getPermission());
     }
 
     @Test

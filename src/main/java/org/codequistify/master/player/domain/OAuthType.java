@@ -1,11 +1,10 @@
 package org.codequistify.master.domain.player.domain.authentication;
 
+import java.util.Arrays;
 import lombok.Getter;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.springframework.http.HttpStatus;
-
-import java.util.Arrays;
 
 @Getter
 public enum OAuthType {

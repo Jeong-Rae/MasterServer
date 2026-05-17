@@ -3,15 +3,14 @@ package org.codequistify.master.global.config;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vane.badwordfiltering.BadWordFiltering;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -21,7 +20,7 @@ public class BadWordFilteringConfig {
     @Bean
     public BadWordFiltering badWordFiltering() throws IOException {
         BadWordFiltering badWordFiltering = new BadWordFiltering();
-        List<String > filteringWords = loadWordsAsList();
+        List<String> filteringWords = loadWordsAsList();
         badWordFiltering.addAll(filteringWords);
 
         return badWordFiltering;

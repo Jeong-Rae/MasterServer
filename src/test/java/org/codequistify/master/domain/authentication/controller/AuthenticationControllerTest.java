@@ -1,5 +1,11 @@
 package org.codequistify.master.domain.authentication.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
 import org.codequistify.master.domain.authentication.dto.LoginResponse;
 import org.codequistify.master.domain.authentication.dto.SocialLogInRequest;
 import org.codequistify.master.domain.authentication.service.AuthenticationService;
@@ -13,10 +19,10 @@ import org.codequistify.master.domain.player.security.PlayerDetailsService;
 import org.codequistify.master.global.jwt.TokenIssuer;
 import org.codequistify.master.global.jwt.TokenVerifier;
 import org.codequistify.master.global.jwt.cookie.TokenCookieManager;
-import org.codequistify.master.global.util.BasicResponse;
 import org.codequistify.master.global.jwt.vo.AccessToken;
 import org.codequistify.master.global.jwt.vo.AccessTokenClaims;
 import org.codequistify.master.global.jwt.vo.RefreshTokenClaims;
+import org.codequistify.master.global.util.BasicResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,13 +32,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.mock.web.MockHttpServletResponse;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AuthenticationControllerTest {
@@ -86,21 +85,16 @@ class AuthenticationControllerTest {
 
     @Test
     void OAuth_로그인_통합_경로는_Provider_타입과_Code로_로그인하고_토큰_쿠키를_설정한다() {
-        PlayerProfile profile = new PlayerProfile(
-                "player-id",
-                "oauthname",
-                "oauth@example.com",
-                0,
-                List.of("ROLE_PLAYER"));
+        PlayerProfile profile =
+                new PlayerProfile("player-id", "oauthname", "oauth@example.com", 0, List.of("ROLE_PLAYER"));
         when(oAuthSignService.login(any(OAuthType.class), any(OAuthCode.class))).thenReturn(profile);
-        when(tokenIssuer.issueRefreshToken(any(RefreshTokenClaims.class))).thenReturn(new RefreshToken("refresh-token"));
+        when(tokenIssuer.issueRefreshToken(any(RefreshTokenClaims.class)))
+                .thenReturn(new RefreshToken("refresh-token"));
         when(tokenIssuer.issueAccessToken(any(AccessTokenClaims.class))).thenReturn(new AccessToken("access-token"));
 
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResponseEntity<LoginResponse> result = controller.socialLogInOAuth(
-                "google",
-                new SocialLogInRequest("authorization-code"),
-                servletResponse);
+        ResponseEntity<LoginResponse> result =
+                controller.socialLogInOAuth("google", new SocialLogInRequest("authorization-code"), servletResponse);
 
         ArgumentCaptor<OAuthCode> codeCaptor = ArgumentCaptor.forClass(OAuthCode.class);
         verify(oAuthSignService).login(org.mockito.ArgumentMatchers.eq(OAuthType.GOOGLE), codeCaptor.capture());
@@ -110,7 +104,8 @@ class AuthenticationControllerTest {
         assertThat(result.getBody().profile()).isEqualTo(profile);
         assertThat(result.getBody().token().refreshToken()).isEqualTo("refresh-token");
         assertThat(result.getBody().token().accessToken()).isEqualTo("access-token");
-        assertThat(servletResponse.getCookies()).extracting("name")
+        assertThat(servletResponse.getCookies())
+                .extracting("name")
                 .containsExactly("POL_REFRESH_TOKEN_DEV", "POL_ACCESS_TOKEN_DEV");
     }
 }

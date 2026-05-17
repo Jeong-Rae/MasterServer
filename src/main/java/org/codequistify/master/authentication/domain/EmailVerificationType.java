@@ -12,5 +12,4 @@ public enum EmailVerificationType {
     EmailVerificationType(String description) {
         this.description = description;
     }
-
 }

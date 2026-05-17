@@ -1,5 +1,9 @@
 package org.codequistify.master.domain.authentication.service.impl;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.authentication.client.OAuthHttpClient;
 import org.codequistify.master.domain.authentication.service.OAuthStrategy;
@@ -19,11 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-
 @Service
 @RequiredArgsConstructor
 public class GithubOAuthStrategy implements OAuthStrategy {
@@ -38,11 +37,11 @@ public class GithubOAuthStrategy implements OAuthStrategy {
 
     @Override
     public String loginUrl() {
-        return "https://github.com/login/oauth/authorize?" +
-                "client_id=" + oAuthKey.getGITHUB_CLIENT_ID() +
-                "&redirect_uri=" + URLEncoder.encode(oAuthKey.getGITHUB_REDIRECT_URI(), StandardCharsets.UTF_8) +
-                "&response_type=code" +
-                "&state=" + URLEncoder.encode("pol", StandardCharsets.UTF_8);
+        return "https://github.com/login/oauth/authorize?" + "client_id="
+                + oAuthKey.getGITHUB_CLIENT_ID() + "&redirect_uri="
+                + URLEncoder.encode(oAuthKey.getGITHUB_REDIRECT_URI(), StandardCharsets.UTF_8) + "&response_type=code"
+                + "&state="
+                + URLEncoder.encode("pol", StandardCharsets.UTF_8);
     }
 
     @Override
@@ -70,9 +69,10 @@ public class GithubOAuthStrategy implements OAuthStrategy {
     @LogMethodInvocation
     private OAuthResource getUserResource(String accessToken) {
         try {
-            Map<String, String> map = oAuthHttpClient
-                    .requestResource(oAuthKey.getGITHUB_RESOURCE_URI(), accessToken, HashMap.class);
-            OAuthResource response = new OAuthResource(String.valueOf(map.get("id")), map.get("login"), map.get("name"));
+            Map<String, String> map =
+                    oAuthHttpClient.requestResource(oAuthKey.getGITHUB_RESOURCE_URI(), accessToken, HashMap.class);
+            OAuthResource response =
+                    new OAuthResource(String.valueOf(map.get("id")), map.get("login"), map.get("name"));
             LOGGER.info("[getUserResource] 리소스: {}", response);
             return response;
         } catch (NullPointerException exception) {

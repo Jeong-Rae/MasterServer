@@ -18,6 +18,4 @@ public interface StageRepository extends JpaRepository<Stage, Long> {
             "LEFT JOIN CompletedStage c ON s.id = c.stage.id AND c.player.id = :playerId")
     List<StageResponseTEMP> findAllByPlayerIdWithCompleted(@Param("playerId") Long playerId);*/
 
-
-
 }

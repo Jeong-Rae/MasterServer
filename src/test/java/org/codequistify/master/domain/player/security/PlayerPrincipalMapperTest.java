@@ -1,5 +1,7 @@
 package org.codequistify.master.domain.player.security;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.domain.authentication.PlayerAuthentication;
 import org.codequistify.master.domain.player.domain.authorization.PlayerAccessType;
@@ -14,8 +16,6 @@ import org.codequistify.master.domain.player.domain.vo.PlayerExperience;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
 import org.codequistify.master.domain.player.domain.vo.PlayerName;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class PlayerPrincipalMapperTest {
 

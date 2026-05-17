@@ -1,9 +1,9 @@
 package org.codequistify.master.domain.player.domain.vo;
 
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import org.junit.jupiter.api.Test;
 
 class HashedPasswordTest {
 
@@ -23,8 +23,7 @@ class HashedPasswordTest {
 
     @Test
     void 원문_비밀번호로_해시를_생성하면_예외를_던진다() {
-        assertThatThrownBy(() -> new HashedPassword("password99763892*"))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new HashedPassword("password99763892*")).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

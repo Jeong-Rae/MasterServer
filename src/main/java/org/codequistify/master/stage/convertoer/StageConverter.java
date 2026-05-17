@@ -1,5 +1,8 @@
 package org.codequistify.master.domain.stage.convertoer;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.stage.domain.Question;
 import org.codequistify.master.domain.stage.domain.Stage;
@@ -9,10 +12,6 @@ import org.codequistify.master.domain.stage.dto.StageRegistryRequest;
 import org.codequistify.master.domain.stage.dto.StageResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Component
 @RequiredArgsConstructor
@@ -26,16 +25,14 @@ public class StageConverter {
                 .stageGroup(request.groupType())
                 .difficultyLevel(request.difficultyLevel())
                 .questionCount(request.questions().size())
-                .questions(
-                        IntStream.range(0, request.questions().size())
-                                .mapToObj(index -> {
-                                    Question question = questionConverter.convert(
-                                            request.questions().get(index));
-                                    question.setIndex(index+1);
-                                    return question;
-                                })
-                                .collect(Collectors.toList())
-                )
+                .questions(IntStream.range(0, request.questions().size())
+                        .mapToObj(index -> {
+                            Question question = questionConverter.convert(
+                                    request.questions().get(index));
+                            question.setIndex(index + 1);
+                            return question;
+                        })
+                        .collect(Collectors.toList()))
                 .build();
     }
 
@@ -52,18 +49,13 @@ public class StageConverter {
     }
 
     public static List<StageResponse> convert(List<Stage> stages) {
-        return stages.stream()
-                .map(StageConverter::convert).collect(Collectors.toList());
+        return stages.stream().map(StageConverter::convert).collect(Collectors.toList());
     }
 
     public static StagePageResponse convert(Page<Stage> stages) {
         PageParameters pageParameters = new PageParameters(
-                stages.getTotalPages(),
-                stages.getSize(),
-                stages.getNumber()+1,
-                stages.getNumberOfElements(),
-                (int) stages.getTotalElements()
-        );
+                stages.getTotalPages(), stages.getSize(), stages.getNumber() + 1, stages.getNumberOfElements(), (int)
+                        stages.getTotalElements());
 
         List<StageResponse> response = convert(stages.getContent());
 

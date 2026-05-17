@@ -63,8 +63,7 @@ public class AuthenticationController {
 
     @Operation(
             summary = "OAuth 로그인 url 발급",
-            description = "OAuth provider 로그인 화면으로 넘어갈 수 있는 url을 발급한다. 고정값이며 저장해여 사용할 수 있다."
-    )
+            description = "OAuth provider 로그인 화면으로 넘어갈 수 있는 url을 발급한다. 고정값이며 저장해여 사용할 수 있다.")
     @LogMonitoring
     @LogMethodInvocation
     @LogExecutionTime
@@ -77,15 +76,11 @@ public class AuthenticationController {
 
     @Operation(
             summary = "OAuth 로그인 요청",
-            description = "redirect로 받은 code와 provider type을 인자로 전달한다. 유효한 code라면 사용자 profile과 인증 토큰을 발급받는다."
-    )
+            description = "redirect로 받은 code와 provider type을 인자로 전달한다. 유효한 code라면 사용자 profile과 인증 토큰을 발급받는다.")
     @LogMonitoring
     @PostMapping("auth/oauth/{type}")
     public ResponseEntity<LoginResponse> socialLogInOAuth(
-            @PathVariable String type,
-            @Valid @RequestBody SocialLogInRequest request,
-            HttpServletResponse response
-    ) {
+            @PathVariable String type, @Valid @RequestBody SocialLogInRequest request, HttpServletResponse response) {
         OAuthType oAuthType = OAuthType.from(type);
         PlayerProfile playerProfile = oAuthSignService.login(oAuthType, new OAuthCode(request.code()));
         IssuedTokens issuedTokens = issueTokens(playerProfile);
@@ -98,26 +93,24 @@ public class AuthenticationController {
         return ResponseEntity.ok(loginResponse);
     }
 
-    @Operation(
-            summary = "POL 자체 회원가입",
-            description = """
-                    자체 회원가입이다. name, email, password를 필수로 입력받는다.
+    @Operation(summary = "POL 자체 회원가입", description = """
+        자체 회원가입이다. name, email, password를 필수로 입력받는다.
 
-                    에러 예시
-                    - 메일 인증 실패 : `"error": "4402_EMAIL_VERIFIED_FAILURE_ERROR"`
-                    - 메일 중복 : `"error": "4201_EMAIL_ALREADY_EXISTS_ERROR"`
-                    - 다른 소셜 로그인 방식으로 가입: `"error": "4202_ EMAIL_ALREADY_EXISTS_OTHER_AUTH_ERROR`
-                    - 비밀번호 조건 미충족: `"error": "4103_PASSWORD_POLICY_VIOLATION_ERROR"`
-                    - 중복된 이름: `"error": "4106_DUPLICATE_NAME_ERROR"`
-                    - 이름에 비속어 포함: `"error": "4105_PROFANITY_IN_NAME_ERROR"`
-                    """
-    )
+        에러 예시
+        - 메일 인증 실패 : `"error": "4402_EMAIL_VERIFIED_FAILURE_ERROR"`
+        - 메일 중복 : `"error": "4201_EMAIL_ALREADY_EXISTS_ERROR"`
+        - 다른 소셜 로그인 방식으로 가입: `"error": "4202_ EMAIL_ALREADY_EXISTS_OTHER_AUTH_ERROR`
+        - 비밀번호 조건 미충족: `"error": "4103_PASSWORD_POLICY_VIOLATION_ERROR"`
+        - 중복된 이름: `"error": "4106_DUPLICATE_NAME_ERROR"`
+        - 이름에 비속어 포함: `"error": "4105_PROFANITY_IN_NAME_ERROR"`
+        """)
     @LogMonitoring
     @PostMapping("/auth/signup")
-    public ResponseEntity<LoginResponse> signUpPOL(@Valid @RequestBody SignUpRequest request, HttpServletResponse response) {
+    public ResponseEntity<LoginResponse> signUpPOL(
+            @Valid @RequestBody SignUpRequest request, HttpServletResponse response) {
         // 이메일 인증 정보를 확인
-        EmailVerification emailVerification = emailVerificationService
-                .verifyEmailAndRetrieve(request.email(), EmailVerificationType.REGISTRATION);
+        EmailVerification emailVerification =
+                emailVerificationService.verifyEmailAndRetrieve(request.email(), EmailVerificationType.REGISTRATION);
 
         PlayerProfile playerProfile = authenticationService.signUp(request);
 
@@ -134,13 +127,11 @@ public class AuthenticationController {
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
     }
 
-    @Operation(
-            summary = "POL 자체 로그인",
-            description = "자체 로그인기능이다. name, password를 필수로 입력받는다."
-    )
+    @Operation(summary = "POL 자체 로그인", description = "자체 로그인기능이다. name, password를 필수로 입력받는다.")
     @LogMonitoring
     @PostMapping("auth/login")
-    public ResponseEntity<LoginResponse> logInPOL(@Valid @RequestBody LogInRequest request, HttpServletResponse response) {
+    public ResponseEntity<LoginResponse> logInPOL(
+            @Valid @RequestBody LogInRequest request, HttpServletResponse response) {
         PlayerProfile playerProfile = authenticationService.logIn(request);
 
         IssuedTokens issuedTokens = issueTokens(playerProfile);
@@ -156,17 +147,18 @@ public class AuthenticationController {
     @Operation(
             summary = "엑세스 토큰 재발급",
             description = """
-                    AccessToken을 재발급 한다.
-                    RefreshToken 값을 body로 받는다. 이때 token은 'Bearer' 없이 token 값만을 적어야 한다.""",
+                AccessToken을 재발급 한다.
+                RefreshToken 값을 body로 받는다. 이때 token은 'Bearer' 없이 token 값만을 적어야 한다.\
+                """,
             responses = {
-                    @ApiResponse(responseCode = "200", description = "정상적으로 재발급"),
-                    @ApiResponse(responseCode = "400", description = "잘못된 요청, id 불일치 또는 빈 요청 등"),
-                    @ApiResponse(responseCode = "401", description = "만료된 Refresh Token")
-            }
-    )
+                @ApiResponse(responseCode = "200", description = "정상적으로 재발급"),
+                @ApiResponse(responseCode = "400", description = "잘못된 요청, id 불일치 또는 빈 요청 등"),
+                @ApiResponse(responseCode = "401", description = "만료된 Refresh Token")
+            })
     @LogMonitoring
     @PostMapping("auth/refresh")
-    public ResponseEntity<TokenResponse> reissueAccessToken(@RequestBody TokenRequest request, HttpServletResponse response) {
+    public ResponseEntity<TokenResponse> reissueAccessToken(
+            @RequestBody TokenRequest request, HttpServletResponse response) {
         IssuedTokens issuedTokens = authenticationService.reissueAccessToken(request);
         tokenCookieManager.addTokenCookies(response, issuedTokens);
         TokenResponse tokenResponse = TokenResponse.from(issuedTokens);
@@ -179,10 +171,9 @@ public class AuthenticationController {
             summary = "토큰 해석",
             description = "토큰 정보를 해석한다.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "유효한 토큰"),
-                    @ApiResponse(responseCode = "400", description = "잘못된 양식의 토큰 또는 셔명되지 않은 토큰 "),
-            }
-    )
+                @ApiResponse(responseCode = "200", description = "유효한 토큰"),
+                @ApiResponse(responseCode = "400", description = "잘못된 양식의 토큰 또는 셔명되지 않은 토큰 "),
+            })
     @LogMonitoring
     @GetMapping("auth/validate")
     public ResponseEntity<TokenInfo> analyzeToken(@RequestParam String token) {
@@ -198,10 +189,9 @@ public class AuthenticationController {
             summary = "로그아웃 요청",
             description = "Authorization에 토큰이 있어야 한다.",
             responses = {
-                    @ApiResponse(responseCode = "204", description = "로그아웃 성공"),
-                    @ApiResponse(responseCode = "401", description = "잘못된 토큰 정보")
-            }
-    )
+                @ApiResponse(responseCode = "204", description = "로그아웃 성공"),
+                @ApiResponse(responseCode = "401", description = "잘못된 토큰 정보")
+            })
     @LogMonitoring
     @PostMapping("auth/logout")
     public ResponseEntity<BasicResponse> LogOut(HttpServletRequest request, HttpServletResponse servletResponse) {
@@ -216,46 +206,44 @@ public class AuthenticationController {
 
         tokenCookieManager.expireTokenCookies(servletResponse);
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(BasicResponse.of("SUCCESS"));
+        return ResponseEntity.status(HttpStatus.OK).body(BasicResponse.of("SUCCESS"));
     }
 
     @Operation(
             summary = "이메일 중복 검사",
             description = "이메일 중복 검사이다. 등록되어 있는지 여부를 확인한다. 사용할 수 없으면 error에 내용이 담긴다.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "사용가능한 이메일",
-                            content = @Content(
-                                    schema = @Schema(implementation = BasicResponse.class))),
-                    @ApiResponse(responseCode = "400", description = "사용할 수 없는 이메일",
-                            content = @Content(
-                                    schema = @Schema(implementation = BasicResponse.class)))}
-    )
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "사용가능한 이메일",
+                        content = @Content(schema = @Schema(implementation = BasicResponse.class))),
+                @ApiResponse(
+                        responseCode = "400",
+                        description = "사용할 수 없는 이메일",
+                        content = @Content(schema = @Schema(implementation = BasicResponse.class)))
+            })
     @LogMonitoring
     @GetMapping("auth/email/{email}")
     public ResponseEntity<BasicResponse> checkEmailDuplication(@PathVariable String email) {
         if (authenticationService.checkEmailDuplication(email)) {
             throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
         } else {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(BasicResponse.of("사용가능한 이메일입니다."));
+            return ResponseEntity.status(HttpStatus.OK).body(BasicResponse.of("사용가능한 이메일입니다."));
         }
     }
 
-    @Operation(
-            summary = "인증메일 발송 요청",
-            description = """
-                    회원가입 인증메일을 발송하는 요청이다. 중복된 이메일인지 함께 검증한다.
-                    type 목록은 다음과 같다.
-                    - 회원가입 : *'REGISTRATION'*
-                    - 비밀번호 초기화 : *'PASSWORD_RESET'*"""
-    )
+    @Operation(summary = "인증메일 발송 요청", description = """
+        회원가입 인증메일을 발송하는 요청이다. 중복된 이메일인지 함께 검증한다.
+        type 목록은 다음과 같다.
+        - 회원가입 : *'REGISTRATION'*
+        - 비밀번호 초기화 : *'PASSWORD_RESET'*\
+        """)
     @PostMapping("auth/email/verification")
     @LogMonitoring
-    public ResponseEntity<BasicResponse> sendAuthMail(@Valid @RequestBody EmailVerificationRequest request) throws MessagingException {
+    public ResponseEntity<BasicResponse> sendAuthMail(@Valid @RequestBody EmailVerificationRequest request)
+            throws MessagingException {
         LOGGER.info(request.type().toString());
-        if (request.type() == EmailVerificationType.REGISTRATION){
+        if (request.type() == EmailVerificationType.REGISTRATION) {
             if (authenticationService.checkEmailDuplication(request.email())) {
                 throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
             }
@@ -270,9 +258,7 @@ public class AuthenticationController {
 
         LOGGER.info("[sendAuthMail] {} 인증 메일 전송", request.email());
         BasicResponse response = new BasicResponse(ErrorCode.SUCCESS.getCode(), "", "");
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @Operation(
@@ -280,9 +266,11 @@ public class AuthenticationController {
             summary = "회원가입 인증코드 확인",
             description = "회원가입 인증코드를 확인한다. 사용자의 email과 입력 코드를 path로 받는다. 결과는 response 필드에 \"true\", \"false\"로 반환한다.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "인증 결과", content = @Content(
-                                    schema = @Schema(implementation = BasicResponse.class)))}
-    )
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "인증 결과",
+                        content = @Content(schema = @Schema(implementation = BasicResponse.class)))
+            })
     @LogMonitoring
     @GetMapping("auth/email/{email}/code/{code}")
     public ResponseEntity<BasicResponse> verifyCode(@PathVariable String email, @PathVariable String code) {
@@ -290,22 +278,22 @@ public class AuthenticationController {
         String bool = Boolean.toString(emailVerificationService.verifyCode(email, code));
 
         LOGGER.info("[verifyCode] {} 회원가입 메일 코드 인증 {}", email, bool);
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(BasicResponse.of(bool));
+        return ResponseEntity.status(HttpStatus.OK).body(BasicResponse.of(bool));
     }
 
     @Operation(
             summary = "임시 엑세스 토큰 발급",
             description = "비밀번호 찾기를 위한 임시 엑세스 토큰을 발급한다.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "인증 성공",
-                            content = @Content(
-                                    schema = @Schema(implementation = TokenResponse.class))),
-                    @ApiResponse(responseCode = "400", description = "인증 실패",
-                            content = @Content(
-                                    schema = @Schema(implementation = BasicResponse.class)))}
-    )
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "인증 성공",
+                        content = @Content(schema = @Schema(implementation = TokenResponse.class))),
+                @ApiResponse(
+                        responseCode = "400",
+                        description = "인증 실패",
+                        content = @Content(schema = @Schema(implementation = BasicResponse.class)))
+            })
     @LogMonitoring
     @GetMapping("/auth/access/{email}/temp")
     public ResponseEntity<TokenResponse> issueTempToken(@PathVariable String email) {
@@ -320,15 +308,13 @@ public class AuthenticationController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-
     private IssuedTokens issueTokens(PlayerProfile playerProfile) {
         TokenAudience audience = TokenAudience.from(playerProfile.id());
         RefreshToken refreshToken = tokenIssuer.issueRefreshToken(new RefreshTokenClaims(audience));
         authenticationService.updateRefreshToken(playerProfile.id(), refreshToken.value()); // refresh token db에 저장
 
-        AccessToken accessToken = tokenIssuer.issueAccessToken(new AccessTokenClaims(
-                audience,
-                TokenAuthorities.fromStoredAuthorities(playerProfile.roles())));
+        AccessToken accessToken = tokenIssuer.issueAccessToken(
+                new AccessTokenClaims(audience, TokenAuthorities.fromStoredAuthorities(playerProfile.roles())));
 
         return IssuedTokens.of(refreshToken, accessToken);
     }

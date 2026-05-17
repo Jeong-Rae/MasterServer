@@ -1,21 +1,16 @@
 package org.codequistify.master.domain.player.security;
 
-import org.codequistify.master.domain.player.domain.authorization.PlayerAuthorization;
+import java.util.Collection;
+import java.util.stream.Stream;
 import org.codequistify.master.domain.player.domain.authorization.PlayerAccesses;
+import org.codequistify.master.domain.player.domain.authorization.PlayerAuthorization;
 import org.codequistify.master.domain.player.domain.authorization.PlayerRoles;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.stream.Stream;
-
-public record PlayerPrincipal(
-        PlayerId id,
-        PlayerAuthorization authorization,
-        boolean locked
-) implements UserDetails {
+public record PlayerPrincipal(PlayerId id, PlayerAuthorization authorization, boolean locked) implements UserDetails {
     public PlayerPrincipal {
         if (id == null) {
             throw new IllegalArgumentException("principal id must not be null");

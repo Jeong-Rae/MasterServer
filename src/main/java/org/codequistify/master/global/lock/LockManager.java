@@ -1,9 +1,8 @@
 package org.codequistify.master.global.lock;
 
-import org.springframework.stereotype.Component;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
+import org.springframework.stereotype.Component;
 
 @Component
 public class LockManager {

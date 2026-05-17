@@ -1,10 +1,10 @@
 package org.codequistify.master.global.jwt.vo;
 
-import org.codequistify.master.domain.player.domain.vo.PlayerId;
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import org.codequistify.master.domain.player.domain.vo.PlayerId;
+import org.junit.jupiter.api.Test;
 
 class TokenAudienceTest {
 
@@ -18,7 +18,6 @@ class TokenAudienceTest {
 
     @Test
     void blank_audience는_예외를_던진다() {
-        assertThatThrownBy(() -> TokenAudience.from(" "))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> TokenAudience.from(" ")).isInstanceOf(IllegalArgumentException.class);
     }
 }

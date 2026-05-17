@@ -1,8 +1,7 @@
 package org.codequistify.master.global.jwt.vo;
 
-import org.codequistify.master.domain.player.domain.authorization.PlayerAuthorization;
-
 import java.util.List;
+import org.codequistify.master.domain.player.domain.authorization.PlayerAuthorization;
 
 public record TokenAuthorities(PlayerAuthorization authorization) {
     public TokenAuthorities {
