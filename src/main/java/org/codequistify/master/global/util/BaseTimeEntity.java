@@ -16,11 +16,19 @@ import org.springframework.format.annotation.DateTimeFormat;
 public class BaseTimeEntity {
     @CreatedDate
     @DateTimeFormat(pattern = "yyyy-MM-dd/HH:mm:ss")
-    @Column(name = "created_date", updatable = false, columnDefinition = "DATETIME(0)")
-    private LocalDateTime createdDate;
+    @Column(name = "created_at", updatable = false, columnDefinition = "DATETIME(0)")
+    private LocalDateTime createdAt;
 
     @LastModifiedDate
     @DateTimeFormat(pattern = "yyyy-MM-dd/HH:mm:ss")
-    @Column(name = "modified_date", columnDefinition = "DATETIME(0)")
-    private LocalDateTime modifiedDate;
+    @Column(name = "updated_at", columnDefinition = "DATETIME(0)")
+    private LocalDateTime updatedAt;
+
+    public LocalDateTime createdAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime updatedAt() {
+        return updatedAt;
+    }
 }

@@ -1,83 +1,90 @@
-package org.codequistify.master.domain.stage.domain;
+package org.codequistify.master.stage.domain;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import lombok.*;
-import org.codequistify.master.global.util.BaseTimeEntity;
-import org.hibernate.annotations.ColumnDefault;
+import lombok.Builder;
+import lombok.ToString;
+import org.codequistify.master.stage.domain.vo.StageEnvironment;
+import org.codequistify.master.stage.domain.vo.StageId;
+import org.codequistify.master.stage.domain.vo.StageQuestions;
 
-@Getter
-@ToString(exclude = {"questions", "completedStages"})
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
-@Entity
-@Table(name = "stage")
-public class Stage extends BaseTimeEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "stage_id")
-    private Long id;
-
-    @Column(name = "title")
-    @NotNull
-    private String title;
-
-    @Column(name = "description")
-    @NotNull
-    private String description;
-
-    @Column(name = "stage_group")
-    @Enumerated(EnumType.STRING)
-    @NotNull
-    private StageGroupType stageGroup;
-
-    @Column(name = "difficulty_level")
-    @Enumerated(EnumType.STRING)
-    @NotNull
-    private DifficultyLevelType difficultyLevel;
-
-    @Builder.Default
-    @Column(name = "count")
-    @ColumnDefault("0")
-    private Integer questionCount = 0;
-
-    @Builder.Default
-    @OneToMany(mappedBy = "stage", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
-    private List<Question> questions = new ArrayList<>();
-
-    @Column(name = "stage_image")
-    @Enumerated(EnumType.STRING)
-    @NotNull
+@ToString
+public class Stage {
+    private final StageId id;
+    private final String title;
+    private final String description;
+    private final StageGroupType stageGroup;
+    private final DifficultyLevelType difficultyLevel;
+    private final StageQuestions questions;
     private StageImageType stageImage;
+    private boolean approved;
 
-    @Builder.Default
-    @Column(name = "approved")
-    @ColumnDefault("false")
-    private Boolean approved = false;
-
-    @Builder.Default
-    @OneToMany(mappedBy = "stage")
-    private Set<CompletedStage> completedStages = new HashSet<>();
+    @Builder
+    public Stage(
+            StageId id,
+            String title,
+            String description,
+            StageGroupType stageGroup,
+            DifficultyLevelType difficultyLevel,
+            StageQuestions questions,
+            StageImageType stageImage,
+            boolean approved) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.stageGroup = stageGroup;
+        this.difficultyLevel = difficultyLevel;
+        this.questions = (questions == null ? StageQuestions.empty() : questions).assignIndexes();
+        if (id != null) {
+            this.questions.assignIds(id);
+        }
+        this.stageImage = stageImage;
+        this.approved = approved;
+    }
 
     public void updateStageImage(StageImageType stageImageType) {
         this.stageImage = stageImageType;
     }
 
-    @PostPersist
-    protected void onPostPersist() {
-        // question id 할당
-        this.questions = questions.stream()
-                .peek(question -> {
-                    question.addStage(this);
-                })
-                .collect(Collectors.toList());
+    public StageEnvironment environment() {
+        return StageEnvironment.from(this);
+    }
+
+    public StageId id() {
+        return id;
+    }
+
+    public String title() {
+        return title;
+    }
+
+    public String description() {
+        return description;
+    }
+
+    public StageGroupType stageGroup() {
+        return stageGroup;
+    }
+
+    public DifficultyLevelType difficultyLevel() {
+        return difficultyLevel;
+    }
+
+    public StageImageType stageImage() {
+        return stageImage;
+    }
+
+    public boolean approved() {
+        return approved;
+    }
+
+    public String stageCode() {
+        return stageImage.code();
+    }
+
+    public boolean stageImageContains(String query) {
+        return stageImage.contains(query);
+    }
+
+    public StageQuestions stageQuestions() {
+        return questions;
     }
 }

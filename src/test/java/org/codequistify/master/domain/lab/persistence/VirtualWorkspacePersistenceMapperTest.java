@@ -7,7 +7,7 @@ import org.codequistify.master.domain.lab.domain.VirtualWorkspaceStatus;
 import org.codequistify.master.domain.lab.domain.vo.VirtualWorkspaceId;
 import org.codequistify.master.domain.lab.domain.vo.VirtualWorkspaceStage;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
-import org.codequistify.master.domain.stage.domain.StageImageType;
+import org.codequistify.master.stage.domain.StageImageType;
 import org.junit.jupiter.api.Test;
 
 class VirtualWorkspacePersistenceMapperTest {
@@ -19,7 +19,7 @@ class VirtualWorkspacePersistenceMapperTest {
         VirtualWorkspace workspace = new VirtualWorkspace(
                 new VirtualWorkspaceId("workspace-id"),
                 new PlayerId("player-id"),
-                new VirtualWorkspaceStage(1L, StageImageType.S1001),
+                new VirtualWorkspaceStage("1", StageImageType.S1001),
                 VirtualWorkspaceStatus.RUNNING,
                 null);
 
@@ -28,7 +28,7 @@ class VirtualWorkspacePersistenceMapperTest {
 
         assertThat(entity.getId()).isEqualTo("workspace-id");
         assertThat(entity.getPlayerId()).isEqualTo("player-id");
-        assertThat(entity.getStageId()).isEqualTo(1L);
+        assertThat(entity.getStageId()).isEqualTo("1");
         assertThat(entity.getStageImage()).isEqualTo(StageImageType.S1001);
         assertThat(entity.getStatus()).isEqualTo(VirtualWorkspaceStatus.RUNNING);
 

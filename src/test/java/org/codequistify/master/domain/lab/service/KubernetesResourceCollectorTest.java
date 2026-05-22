@@ -17,7 +17,7 @@ import org.codequistify.master.domain.lab.domain.VirtualWorkspaceStatus;
 import org.codequistify.master.domain.lab.domain.vo.VirtualWorkspaceStage;
 import org.codequistify.master.domain.lab.repository.VirtualWorkspaceRepository;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
-import org.codequistify.master.domain.stage.domain.StageImageType;
+import org.codequistify.master.stage.domain.StageImageType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
@@ -43,7 +43,7 @@ class KubernetesResourceCollectorTest {
         Pod timeoutPod = pod("s1001-player-id", "player-id", "s1001", "1");
         VirtualWorkspace workspace = runningWorkspace();
         when(kubernetesVirtualWorkspaceProvisioner.getTimeoutRuntimes()).thenReturn(List.of(timeoutPod));
-        when(virtualWorkspaceRepository.findLatestActiveByPlayerIdAndStageId(new PlayerId("player-id"), 1L))
+        when(virtualWorkspaceRepository.findLatestActiveByPlayerIdAndStageId(new PlayerId("player-id"), "1"))
                 .thenReturn(Optional.of(workspace));
         when(virtualWorkspaceRepository.save(any(VirtualWorkspace.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -105,7 +105,8 @@ class KubernetesResourceCollectorTest {
     }
 
     private VirtualWorkspace runningWorkspace() {
-        return VirtualWorkspace.startFor(new PlayerId("player-id"), new VirtualWorkspaceStage(1L, StageImageType.S1001))
+        return VirtualWorkspace.startFor(
+                        new PlayerId("player-id"), new VirtualWorkspaceStage("1", StageImageType.S1001))
                 .startProvisioning()
                 .markRunning();
     }

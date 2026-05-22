@@ -10,11 +10,11 @@ import org.codequistify.master.domain.player.dto.PlayerStageProgressResponse;
 import org.codequistify.master.domain.player.security.PlayerDetailsService;
 import org.codequistify.master.domain.player.security.PlayerPrincipal;
 import org.codequistify.master.domain.player.service.PlayerProfileService;
-import org.codequistify.master.domain.stage.domain.CompletedStatus;
-import org.codequistify.master.domain.stage.dto.HeatMapDataPoint;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
+import org.codequistify.master.stage.domain.CompletedStatus;
+import org.codequistify.master.stage.dto.StageAttemptHeatMapPoint;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -55,7 +55,7 @@ public class PlayerProfileController {
 
     @GetMapping("me/heat-map")
     @Operation(summary = "자신의 문제풀이 heatmap 정보 조회", description = "자신의 문제풀이 내역에 대한 heatmap 정보를 조회한다")
-    public ResponseEntity<List<HeatMapDataPoint>> getHeatMapPointsForPlayer(
+    public ResponseEntity<List<StageAttemptHeatMapPoint>> getHeatMapPointsForPlayer(
             @AuthenticationPrincipal PlayerPrincipal principal) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(playerProfileService.getHeatMapDataPointsByModifiedDate(principal));

@@ -2,7 +2,7 @@ package org.codequistify.master.domain.lab.domain.vo;
 
 import java.util.Locale;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
-import org.codequistify.master.domain.stage.domain.StageImageType;
+import org.codequistify.master.stage.domain.StageImageType;
 
 public record WorkspaceRuntimeName(String value) {
     public WorkspaceRuntimeName {
@@ -15,7 +15,7 @@ public record WorkspaceRuntimeName(String value) {
         if (stageImage == null || playerId == null) {
             throw new IllegalArgumentException("workspace runtime name fields must not be null");
         }
-        return new WorkspaceRuntimeName(stageImage.name().toLowerCase(Locale.ROOT) + "-"
-                + playerId.value().toLowerCase(Locale.ROOT));
+        return new WorkspaceRuntimeName(
+                stageImage.resourceCode() + "-" + playerId.value().toLowerCase(Locale.ROOT));
     }
 }

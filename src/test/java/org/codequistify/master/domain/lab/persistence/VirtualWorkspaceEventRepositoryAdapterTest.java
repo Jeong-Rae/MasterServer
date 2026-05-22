@@ -10,7 +10,7 @@ import org.codequistify.master.domain.lab.domain.vo.VirtualWorkspaceId;
 import org.codequistify.master.domain.lab.domain.vo.VirtualWorkspaceStage;
 import org.codequistify.master.domain.lab.repository.VirtualWorkspaceEventRepository;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
-import org.codequistify.master.domain.stage.domain.StageImageType;
+import org.codequistify.master.stage.domain.StageImageType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -86,7 +86,7 @@ class VirtualWorkspaceEventRepositoryAdapterTest {
         return VirtualWorkspaceStateChangeEvent.success(
                 workspaceId,
                 new PlayerId("player-id"),
-                new VirtualWorkspaceStage(1L, StageImageType.S1001),
+                new VirtualWorkspaceStage("1", StageImageType.S1001),
                 eventType,
                 fromStatus,
                 toStatus,

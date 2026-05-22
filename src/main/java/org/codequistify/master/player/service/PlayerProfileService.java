@@ -11,9 +11,9 @@ import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.domain.player.dto.PlayerStageProgressResponse;
 import org.codequistify.master.domain.player.persistence.PlayerRepository;
 import org.codequistify.master.domain.player.security.PlayerPrincipal;
-import org.codequistify.master.domain.stage.dto.HeatMapDataPoint;
-import org.codequistify.master.domain.stage.service.StageSearchService;
 import org.codequistify.master.global.aspect.LogExecutionTime;
+import org.codequistify.master.stage.dto.StageAttemptHeatMapPoint;
+import org.codequistify.master.stage.service.StageSearchService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,7 +45,7 @@ public class PlayerProfileService {
 
     @LogExecutionTime
     @Transactional
-    public List<HeatMapDataPoint> getHeatMapDataPointsByModifiedDate(PlayerPrincipal principal) {
+    public List<StageAttemptHeatMapPoint> getHeatMapDataPointsByModifiedDate(PlayerPrincipal principal) {
         return stageSearchService.getHeatMapDataPointsByModifiedDate(
                 principal.id().value());
     }

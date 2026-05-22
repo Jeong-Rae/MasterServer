@@ -1,8 +1,5 @@
-package org.codequistify.master.domain.stage.domain;
+package org.codequistify.master.stage.domain;
 
-import lombok.Getter;
-
-@Getter
 public enum AnswerType {
     MULTIPLE_CHOICE("M"),
     SHORT_ANSWER("S"),
@@ -13,5 +10,9 @@ public enum AnswerType {
 
     AnswerType(String code) {
         this.code = code;
+    }
+
+    public String code() {
+        return code;
     }
 }

@@ -25,7 +25,7 @@ public class EmailVerificationRepositoryAdapter implements EmailVerificationRepo
     public Optional<EmailVerification> findLatestByEmailAndUsedAndType(
             EmailAddress email, Boolean used, EmailVerificationType type) {
         return emailVerificationJpaRepository
-                .findFirstByEmailAndUsedAndEmailVerificationTypeOrderByCreatedDateDesc(email.value(), used, type)
+                .findFirstByEmailAndUsedAndEmailVerificationTypeOrderByCreatedAtDesc(email.value(), used, type)
                 .map(emailVerificationPersistenceMapper::toDomain);
     }
 }

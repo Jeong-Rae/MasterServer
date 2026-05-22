@@ -2,7 +2,7 @@ package org.codequistify.master.domain.lab.vo;
 
 import java.util.Locale;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
-import org.codequistify.master.domain.stage.domain.StageImageType;
+import org.codequistify.master.stage.domain.StageImageType;
 
 public record KubernetesResourceName(String value) {
     public KubernetesResourceName {
@@ -18,7 +18,7 @@ public record KubernetesResourceName(String value) {
         if (playerId == null) {
             throw new IllegalArgumentException("player id must not be null");
         }
-        return new KubernetesResourceName(stageImage.name().toLowerCase(Locale.ROOT) + "-"
-                + playerId.value().toLowerCase(Locale.ROOT));
+        return new KubernetesResourceName(
+                stageImage.resourceCode() + "-" + playerId.value().toLowerCase(Locale.ROOT));
     }
 }

@@ -5,7 +5,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import java.util.Locale;
 import org.codequistify.master.domain.lab.domain.WorkspaceRuntime;
-import org.codequistify.master.domain.stage.domain.StageImageType;
+import org.codequistify.master.stage.domain.StageImageType;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,7 +15,7 @@ public class KubernetesPodManifestFactory {
     public Pod create(WorkspaceRuntime runtime, int port) {
         StageImageType stageImage = runtime.image();
         String playerLabel = runtime.playerId().value().toLowerCase(Locale.ROOT);
-        String stageLabel = stageImage.name().toLowerCase(Locale.ROOT);
+        String stageLabel = stageImage.resourceCode();
         String stageIdLabel = runtime.stageId().toString();
 
         return new PodBuilder()
@@ -30,7 +30,7 @@ public class KubernetesPodManifestFactory {
                 .withNewSpec()
                 .addNewContainer()
                 .withName(stageLabel)
-                .withImage(stageImage.getImageName())
+                .withImage(stageImage.imageName())
                 .addNewPort()
                 .withContainerPort(port)
                 .endPort()

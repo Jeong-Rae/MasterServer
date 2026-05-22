@@ -1,8 +1,5 @@
-package org.codequistify.master.domain.stage.domain;
+package org.codequistify.master.stage.domain;
 
-import lombok.Getter;
-
-@Getter
 public enum DifficultyLevelType {
     L1(1, 100),
     L2(2, 120),
@@ -16,5 +13,13 @@ public enum DifficultyLevelType {
     DifficultyLevelType(int level, int exp) {
         this.level = level;
         this.exp = exp;
+    }
+
+    public int level() {
+        return level;
+    }
+
+    public int exp() {
+        return exp;
     }
 }

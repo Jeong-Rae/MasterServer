@@ -1,8 +1,7 @@
-package org.codequistify.master.domain.stage.domain;
+package org.codequistify.master.stage.domain;
 
-import lombok.Getter;
+import java.util.Locale;
 
-@Getter
 public enum StageImageType {
     S1001("polhub/s1001", "latest"),
     S1002("polhub/s1002", "latest"),
@@ -37,7 +36,29 @@ public enum StageImageType {
         this.tag = tag;
     }
 
-    public String getImageName() {
+    public String imageName() {
         return this.image + ":" + this.tag;
+    }
+
+    public String code() {
+        return name();
+    }
+
+    public String resourceCode() {
+        return name().toLowerCase(Locale.ROOT);
+    }
+
+    public boolean contains(String query) {
+        if (query == null || query.isBlank()) {
+            return false;
+        }
+        return resourceCode().contains(query.toLowerCase(Locale.ROOT));
+    }
+
+    public static StageImageType fromResourceCode(String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("stage image code must not be blank");
+        }
+        return StageImageType.valueOf(value.toUpperCase(Locale.ROOT));
     }
 }

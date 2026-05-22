@@ -1,87 +1,77 @@
-package org.codequistify.master.domain.stage.domain;
+package org.codequistify.master.stage.domain;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import java.util.ArrayList;
 import java.util.List;
-import lombok.*;
-import org.codequistify.master.global.util.BaseTimeEntity;
-import org.hibernate.annotations.ColumnDefault;
+import lombok.Builder;
+import lombok.ToString;
+import org.codequistify.master.stage.domain.answer.AlwaysCorrectAnswer;
+import org.codequistify.master.stage.domain.answer.Answer;
+import org.codequistify.master.stage.domain.answer.ExecutionRequired;
+import org.codequistify.master.stage.domain.answer.MatchableAnswer;
+import org.codequistify.master.stage.domain.vo.QuestionId;
+import org.codequistify.master.stage.domain.vo.QuestionIndex;
+import org.codequistify.master.stage.domain.vo.SubmittedAnswer;
 
-@Getter
-@ToString(exclude = "stage")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
-@Entity
-@Table(
-        name = "question",
-        indexes = {@Index(name = "idx_stageid_questionindex", columnList = "stage_id, question_index")},
-        uniqueConstraints = {
-            @UniqueConstraint(
-                    name = "uc_stageid_questionindex",
-                    columnNames = {"stage_id", "question_index"})
-        })
-public class Question extends BaseTimeEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "question_id")
-    private Long id;
+@ToString
+public class Question {
+    private QuestionId id;
+    private QuestionIndex index;
+    private final String title;
+    private final String description;
+    private final Answer answer;
 
-    @Column(name = "question_index")
-    @NotNull
-    private Integer index;
-
-    @Column(name = "title")
-    @NotNull
-    private String title;
-
-    @Column(name = "description")
-    @NotNull
-    private String description;
-
-    @Builder.Default
-    @Column(name = "answer_type")
-    @ColumnDefault("'SHORT_ANSWER'")
-    @Enumerated(EnumType.STRING)
-    @NotNull
-    private AnswerType answerType = AnswerType.SHORT_ANSWER;
-
-    @Builder.Default
-    @Column(name = "correct_answer")
-    @NotNull
-    private String correctAnswer = "";
-
-    @Builder.Default
-    @Column(name = "is_composable")
-    @ColumnDefault("false")
-    @NotNull
-    private boolean isComposable = false;
-
-    @ElementCollection(fetch = FetchType.EAGER)
-    @Builder.Default
-    private List<String> options = new ArrayList<>();
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "stage_id")
-    @NotNull
-    @JsonBackReference
-    private Stage stage;
-
-    public List<String> getOptions() {
-        return this.options;
-    }
-
-    public void setQuestionId(Long id) {
+    @Builder
+    public Question(QuestionId id, QuestionIndex index, String title, String description, Answer answer) {
         this.id = id;
+        this.index = id == null ? index : id.index();
+        this.title = title;
+        this.description = description;
+        this.answer = answer == null ? Answer.of(AnswerType.SHORT_ANSWER, "", List.of(), false) : answer;
     }
 
-    public void addStage(Stage stage) {
-        this.stage = stage;
+    public QuestionId id() {
+        return id;
     }
 
-    public void setIndex(int index) {
+    public String title() {
+        return title;
+    }
+
+    public String description() {
+        return description;
+    }
+
+    public QuestionIndex index() {
+        return id == null ? index : id.index();
+    }
+
+    public boolean isPractical() {
+        return answer.type() == AnswerType.PRACTICAL;
+    }
+
+    public boolean grade(SubmittedAnswer submittedAnswer) {
+        if (answer instanceof MatchableAnswer matchableAnswer) {
+            return matchableAnswer.matches(submittedAnswer);
+        }
+        if (answer instanceof AlwaysCorrectAnswer alwaysCorrectAnswer) {
+            return alwaysCorrectAnswer.isCorrect();
+        }
+        return false;
+    }
+
+    public boolean requiresCompose() {
+        return answer instanceof ExecutionRequired executionRequired && executionRequired.requiresCompose();
+    }
+
+    public Answer answer() {
+        return answer;
+    }
+
+    public void assignIndex(QuestionIndex index) {
         this.index = index;
+    }
+
+    public void assignId(QuestionId id) {
+        this.id = id;
+        this.index = id.index();
     }
 }

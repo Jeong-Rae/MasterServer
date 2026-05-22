@@ -5,7 +5,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import java.util.Locale;
 import org.codequistify.master.domain.lab.domain.WorkspaceBinding;
-import org.codequistify.master.domain.stage.domain.StageImageType;
+import org.codequistify.master.stage.domain.StageImageType;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -13,7 +13,7 @@ public class KubernetesServiceManifestFactory {
     public Service create(WorkspaceBinding binding, int port) {
         StageImageType stageImage = binding.image();
         String playerLabel = binding.playerId().value().toLowerCase(Locale.ROOT);
-        String stageLabel = stageImage.name().toLowerCase(Locale.ROOT);
+        String stageLabel = stageImage.resourceCode();
         String stageIdLabel = binding.stageId().toString();
 
         return new ServiceBuilder()

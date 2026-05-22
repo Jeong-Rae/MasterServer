@@ -3,7 +3,7 @@ package org.codequistify.master.domain.lab.domain;
 import org.codequistify.master.domain.lab.domain.vo.VirtualWorkspaceStage;
 import org.codequistify.master.domain.lab.domain.vo.WorkspaceBindingName;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
-import org.codequistify.master.domain.stage.domain.StageImageType;
+import org.codequistify.master.stage.domain.StageImageType;
 
 public record WorkspaceBinding(WorkspaceBindingName name, VirtualWorkspaceStage stage, PlayerId playerId) {
     public WorkspaceBinding {
@@ -20,7 +20,7 @@ public record WorkspaceBinding(WorkspaceBindingName name, VirtualWorkspaceStage 
         return stage.image();
     }
 
-    public Long stageId() {
+    public String stageId() {
         return stage.id();
     }
 }

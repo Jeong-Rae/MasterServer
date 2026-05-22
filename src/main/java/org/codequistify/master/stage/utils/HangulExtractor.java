@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.stage.utils;
+package org.codequistify.master.stage.utils;
 
 import java.util.List;
 

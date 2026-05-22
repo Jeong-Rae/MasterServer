@@ -10,11 +10,11 @@ import org.codequistify.master.domain.lab.domain.VirtualWorkspaceStatus;
 import org.codequistify.master.domain.lab.domain.vo.VirtualWorkspaceStage;
 import org.codequistify.master.domain.lab.repository.VirtualWorkspaceRepository;
 import org.codequistify.master.domain.player.security.PlayerPrincipal;
-import org.codequistify.master.domain.stage.domain.Stage;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.global.lock.LockManager;
+import org.codequistify.master.stage.domain.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -32,15 +32,19 @@ public class VirtualWorkspaceService {
 
     @LogExecutionTime
     public Optional<VirtualWorkspace> requestVirtualWorkspace(PlayerPrincipal principal, Stage stage) {
-        ReentrantLock lock = lockManager.getLock(principal.id().value(), stage.getId());
+        ReentrantLock lock =
+                lockManager.getLock(principal.id().value(), stage.id().value());
         if (!lock.tryLock()) {
-            LOGGER.info("[requestVirtualWorkspace] apply 작업중 중복된 요청 발생. stage: {}", stage.getId());
+            LOGGER.info(
+                    "[requestVirtualWorkspace] apply 작업중 중복된 요청 발생. stage: {}",
+                    stage.id().value());
             return Optional.empty();
         }
 
         try {
             virtualWorkspaceRepository
-                    .findLatestActiveByPlayerIdAndStageId(principal.id(), stage.getId())
+                    .findLatestActiveByPlayerIdAndStageId(
+                            principal.id(), stage.id().value())
                     .ifPresent(this::deleteSync);
 
             VirtualWorkspace workspace = VirtualWorkspace.startFor(principal.id(), VirtualWorkspaceStage.from(stage));
@@ -61,31 +65,31 @@ public class VirtualWorkspaceService {
                 throw exception;
             }
 
-            LOGGER.info("[requestVirtualWorkspace] stage: {}", stage.getId());
+            LOGGER.info("[requestVirtualWorkspace] stage: {}", stage.id().value());
             return Optional.of(waitUntilRunning(workspace));
         } finally {
-            lockManager.unlock(principal.id().value(), stage.getId());
+            lockManager.unlock(principal.id().value(), stage.id().value());
         }
     }
 
     @LogExecutionTime
     public void deleteVirtualWorkspaceAsync(PlayerPrincipal principal, Stage stage) {
         virtualWorkspaceRepository
-                .findLatestActiveByPlayerIdAndStageId(principal.id(), stage.getId())
+                .findLatestActiveByPlayerIdAndStageId(principal.id(), stage.id().value())
                 .ifPresent(this::deleteAsync);
     }
 
     @LogExecutionTime
     public void deleteVirtualWorkspaceSync(PlayerPrincipal principal, Stage stage) {
         virtualWorkspaceRepository
-                .findLatestActiveByPlayerIdAndStageId(principal.id(), stage.getId())
+                .findLatestActiveByPlayerIdAndStageId(principal.id(), stage.id().value())
                 .ifPresent(this::deleteSync);
     }
 
     @LogExecutionTime
     public boolean existsRunningVirtualWorkspace(PlayerPrincipal principal, Stage stage) {
         boolean exists = virtualWorkspaceRepository
-                .findRunningByPlayerIdAndStageId(principal.id(), stage.getId())
+                .findRunningByPlayerIdAndStageId(principal.id(), stage.id().value())
                 .isPresent();
 
         LOGGER.info("[existsRunningVirtualWorkspace] exists: {}", exists);
@@ -94,7 +98,7 @@ public class VirtualWorkspaceService {
 
     public VirtualWorkspace getRunningVirtualWorkspace(PlayerPrincipal principal, Stage stage) {
         return virtualWorkspaceRepository
-                .findRunningByPlayerIdAndStageId(principal.id(), stage.getId())
+                .findRunningByPlayerIdAndStageId(principal.id(), stage.id().value())
                 .orElseThrow(() -> new BusinessException(ErrorCode.VIRTUAL_WORKSPACE_NOT_FOUND, HttpStatus.NOT_FOUND));
     }
 

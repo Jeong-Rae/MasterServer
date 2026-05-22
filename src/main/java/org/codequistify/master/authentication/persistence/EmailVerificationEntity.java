@@ -14,7 +14,7 @@ import org.hibernate.annotations.ColumnDefault;
 @Entity
 @Table(
         name = "email_verification",
-        indexes = {@Index(name = "idx_email_verification_lookup", columnList = "email, used, type, created_date")})
+        indexes = {@Index(name = "idx_email_verification_lookup", columnList = "email, used, type, created_at")})
 public class EmailVerificationEntity extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

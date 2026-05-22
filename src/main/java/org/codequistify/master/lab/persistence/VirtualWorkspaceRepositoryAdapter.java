@@ -7,7 +7,7 @@ import org.codequistify.master.domain.lab.domain.VirtualWorkspace;
 import org.codequistify.master.domain.lab.domain.VirtualWorkspaceStatus;
 import org.codequistify.master.domain.lab.repository.VirtualWorkspaceRepository;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
-import org.codequistify.master.domain.stage.domain.StageImageType;
+import org.codequistify.master.stage.domain.StageImageType;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -24,17 +24,17 @@ public class VirtualWorkspaceRepositoryAdapter implements VirtualWorkspaceReposi
     }
 
     @Override
-    public Optional<VirtualWorkspace> findRunningByPlayerIdAndStageId(PlayerId playerId, Long stageId) {
+    public Optional<VirtualWorkspace> findRunningByPlayerIdAndStageId(PlayerId playerId, String stageId) {
         return virtualWorkspaceJpaRepository
-                .findFirstByPlayerIdAndStageIdAndStatusOrderByModifiedDateDesc(
+                .findFirstByPlayerIdAndStageIdAndStatusOrderByUpdatedAtDesc(
                         playerId.value(), stageId, VirtualWorkspaceStatus.RUNNING)
                 .map(virtualWorkspacePersistenceMapper::toDomain);
     }
 
     @Override
-    public Optional<VirtualWorkspace> findLatestActiveByPlayerIdAndStageId(PlayerId playerId, Long stageId) {
+    public Optional<VirtualWorkspace> findLatestActiveByPlayerIdAndStageId(PlayerId playerId, String stageId) {
         return virtualWorkspaceJpaRepository
-                .findFirstByPlayerIdAndStageIdAndStatusInOrderByModifiedDateDesc(
+                .findFirstByPlayerIdAndStageIdAndStatusInOrderByUpdatedAtDesc(
                         playerId.value(), stageId, activeStatuses())
                 .map(virtualWorkspacePersistenceMapper::toDomain);
     }
@@ -43,7 +43,7 @@ public class VirtualWorkspaceRepositoryAdapter implements VirtualWorkspaceReposi
     public Optional<VirtualWorkspace> findLatestActiveByPlayerIdAndStageImage(
             PlayerId playerId, StageImageType stageImage) {
         return virtualWorkspaceJpaRepository
-                .findFirstByPlayerIdAndStageImageAndStatusInOrderByModifiedDateDesc(
+                .findFirstByPlayerIdAndStageImageAndStatusInOrderByUpdatedAtDesc(
                         playerId.value(), stageImage, activeStatuses())
                 .map(virtualWorkspacePersistenceMapper::toDomain);
     }

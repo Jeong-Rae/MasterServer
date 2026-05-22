@@ -3,8 +3,8 @@ package org.codequistify.master.domain.lab.persistence;
 import jakarta.persistence.*;
 import lombok.*;
 import org.codequistify.master.domain.lab.domain.VirtualWorkspaceStatus;
-import org.codequistify.master.domain.stage.domain.StageImageType;
 import org.codequistify.master.global.util.BaseTimeEntity;
+import org.codequistify.master.stage.domain.StageImageType;
 
 @Getter
 @ToString
@@ -23,8 +23,8 @@ public class VirtualWorkspaceEntity extends BaseTimeEntity {
     @Column(name = "player_id", nullable = false, columnDefinition = "char(36)")
     private String playerId;
 
-    @Column(name = "stage_id", nullable = false)
-    private Long stageId;
+    @Column(name = "stage_id", nullable = false, columnDefinition = "char(36)")
+    private String stageId;
 
     @Column(name = "stage_image", nullable = false, length = 30)
     @Enumerated(EnumType.STRING)

@@ -4,7 +4,7 @@ import org.codequistify.master.domain.lab.domain.VirtualWorkspace;
 import org.codequistify.master.domain.lab.vo.VirtualWorkspaceHost;
 import org.codequistify.master.domain.lab.vo.VirtualWorkspaceQuery;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
-import org.codequistify.master.domain.stage.domain.StageImageType;
+import org.codequistify.master.stage.domain.StageImageType;
 
 public record VirtualWorkspaceCreateResponse(String url, String query) {
     public static VirtualWorkspaceCreateResponse of(

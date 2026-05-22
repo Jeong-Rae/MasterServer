@@ -13,7 +13,7 @@ import org.codequistify.master.domain.lab.domain.VirtualWorkspaceStatus;
 import org.codequistify.master.domain.lab.domain.vo.VirtualWorkspaceStage;
 import org.codequistify.master.domain.lab.repository.VirtualWorkspaceEventRepository;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
-import org.codequistify.master.domain.stage.domain.StageImageType;
+import org.codequistify.master.stage.domain.StageImageType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -31,7 +31,7 @@ class VirtualWorkspaceStateChangeLoggerTest {
         VirtualWorkspaceStateChangeLogger logger =
                 new VirtualWorkspaceStateChangeLogger(virtualWorkspaceEventRepository);
         VirtualWorkspace workspace = VirtualWorkspace.startFor(
-                new PlayerId("player-id"), new VirtualWorkspaceStage(1L, StageImageType.S1001));
+                new PlayerId("player-id"), new VirtualWorkspaceStage("1", StageImageType.S1001));
         when(virtualWorkspaceEventRepository.saveIfAbsent(any(VirtualWorkspaceStateChangeEvent.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -51,7 +51,7 @@ class VirtualWorkspaceStateChangeLoggerTest {
         VirtualWorkspaceStateChangeLogger logger =
                 new VirtualWorkspaceStateChangeLogger(virtualWorkspaceEventRepository);
         VirtualWorkspace workspace = VirtualWorkspace.startFor(
-                new PlayerId("player-id"), new VirtualWorkspaceStage(1L, StageImageType.S1001));
+                new PlayerId("player-id"), new VirtualWorkspaceStage("1", StageImageType.S1001));
         when(virtualWorkspaceEventRepository.saveIfAbsent(any(VirtualWorkspaceStateChangeEvent.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -74,7 +74,7 @@ class VirtualWorkspaceStateChangeLoggerTest {
         VirtualWorkspaceStateChangeLogger logger =
                 new VirtualWorkspaceStateChangeLogger(virtualWorkspaceEventRepository);
         VirtualWorkspace workspace = VirtualWorkspace.startFor(
-                new PlayerId("player-id"), new VirtualWorkspaceStage(1L, StageImageType.S1001));
+                new PlayerId("player-id"), new VirtualWorkspaceStage("1", StageImageType.S1001));
         when(virtualWorkspaceEventRepository.saveIfAbsent(any(VirtualWorkspaceStateChangeEvent.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 

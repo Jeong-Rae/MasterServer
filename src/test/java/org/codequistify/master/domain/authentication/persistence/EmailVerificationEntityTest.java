@@ -20,6 +20,6 @@ class EmailVerificationEntityTest {
 
     private boolean isEmailVerificationLookupIndex(Index index) {
         return index.name().equals("idx_email_verification_lookup")
-                && index.columnList().equals("email, used, type, created_date");
+                && index.columnList().equals("email, used, type, created_at");
     }
 }

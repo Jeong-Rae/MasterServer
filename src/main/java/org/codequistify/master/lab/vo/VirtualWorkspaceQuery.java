@@ -2,7 +2,7 @@ package org.codequistify.master.domain.lab.vo;
 
 import java.util.Locale;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
-import org.codequistify.master.domain.stage.domain.StageImageType;
+import org.codequistify.master.stage.domain.StageImageType;
 
 public record VirtualWorkspaceQuery(String value) {
     public VirtualWorkspaceQuery {
@@ -18,7 +18,7 @@ public record VirtualWorkspaceQuery(String value) {
         if (playerId == null) {
             throw new IllegalArgumentException("player id must not be null");
         }
-        return new VirtualWorkspaceQuery("?uid=" + playerId.value().toLowerCase(Locale.ROOT) + "&stage="
-                + stageImage.name().toLowerCase(Locale.ROOT));
+        return new VirtualWorkspaceQuery(
+                "?uid=" + playerId.value().toLowerCase(Locale.ROOT) + "&stage=" + stageImage.resourceCode());
     }
 }

@@ -8,7 +8,7 @@ import org.codequistify.master.domain.lab.domain.WorkspaceBinding;
 import org.codequistify.master.domain.lab.domain.WorkspaceRuntime;
 import org.codequistify.master.domain.lab.domain.vo.VirtualWorkspaceStage;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
-import org.codequistify.master.domain.stage.domain.StageImageType;
+import org.codequistify.master.stage.domain.StageImageType;
 import org.junit.jupiter.api.Test;
 
 class KubernetesResourceFactoryTest {
@@ -17,7 +17,7 @@ class KubernetesResourceFactoryTest {
     void Pod는_VirtualWorkspace_리소스_이름과_stage_label을_사용한다() {
         KubernetesPodManifestFactory factory = new KubernetesPodManifestFactory();
         WorkspaceRuntime runtime =
-                WorkspaceRuntime.from(new VirtualWorkspaceStage(1L, StageImageType.S1001), new PlayerId("Player-ID"));
+                WorkspaceRuntime.from(new VirtualWorkspaceStage("1", StageImageType.S1001), new PlayerId("Player-ID"));
 
         Pod pod = factory.create(runtime, 8080);
 
@@ -33,7 +33,7 @@ class KubernetesResourceFactoryTest {
     void Service는_VirtualWorkspace_리소스_이름과_selector를_사용한다() {
         KubernetesServiceManifestFactory factory = new KubernetesServiceManifestFactory();
         WorkspaceBinding binding =
-                WorkspaceBinding.from(new VirtualWorkspaceStage(1L, StageImageType.S1001), new PlayerId("Player-ID"));
+                WorkspaceBinding.from(new VirtualWorkspaceStage("1", StageImageType.S1001), new PlayerId("Player-ID"));
 
         Service service = factory.create(binding, 8080);
 

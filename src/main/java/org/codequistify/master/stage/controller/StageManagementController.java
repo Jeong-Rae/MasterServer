@@ -1,17 +1,21 @@
-package org.codequistify.master.domain.stage.controller;
+package org.codequistify.master.stage.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.security.PlayerPrincipal;
-import org.codequistify.master.domain.stage.dto.*;
-import org.codequistify.master.domain.stage.service.StageManagementService;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.global.util.BasicResponse;
 import org.codequistify.master.global.util.SuccessResponse;
+import org.codequistify.master.stage.domain.vo.QuestionIndex;
+import org.codequistify.master.stage.dto.QuestionGradingRequest;
+import org.codequistify.master.stage.dto.QuestionGradingResponse;
+import org.codequistify.master.stage.dto.StageCompletionResponse;
+import org.codequistify.master.stage.dto.StageCreateRequest;
+import org.codequistify.master.stage.service.StageManagementService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -31,7 +35,7 @@ public class StageManagementController {
     @Operation(summary = "스테이지 신규 등록", description = "스테이지 신규 등록")
     @PostMapping("stages")
     @LogMonitoring
-    public ResponseEntity<BasicResponse> registryStage(@RequestBody StageRegistryRequest request) {
+    public ResponseEntity<BasicResponse> registryStage(@RequestBody StageCreateRequest request) {
         stageManagementService.saveStage(request);
 
         LOGGER.info("[registryStage] 스테이지 등록 완료");
@@ -42,20 +46,20 @@ public class StageManagementController {
     @Operation(summary = "문항 채점 요청", description = """
         문항을 채점합니다. 문항 고유 Id와 순서에 대한 정보, 채점 받을 선택을 요청에 포함합니다.
 
-        마지막 문항인 경우 `nextIndex = -1`, `isLast = true`를 반환힙니다.
+        마지막 문항인 경우 `nextQuestionIndex = -1`, `last = true`를 반환힙니다.
 
-        다음 문항(question)이 환경 구성 (compose)을 요구한다면, `isComposable = true` 입니다.
+        다음 문항(question)이 환경 구성 (compose)을 요구한다면, `composable = true` 입니다.
         """)
     @LogMonitoring
     @PostMapping("questions/grading")
-    public ResponseEntity<GradingResponse> submitAnswerForGrading(
-            @AuthenticationPrincipal PlayerPrincipal principal, @Valid @RequestBody GradingRequest request) {
+    public ResponseEntity<QuestionGradingResponse> submitAnswerForGrading(
+            @AuthenticationPrincipal PlayerPrincipal principal, @Valid @RequestBody QuestionGradingRequest request) {
 
-        GradingResponse response = stageManagementService.evaluateAnswer(principal, request);
-        if (request.questionIndex() == 1) { // 첫문제인 경우 진행 시작 기록
+        QuestionGradingResponse response = stageManagementService.evaluateAnswer(principal, request);
+        if (new QuestionIndex(request.questionIndex()).isFirst()) { // 첫문제인 경우 진행 시작 기록
             stageManagementService.recordInProgressStageInit(principal, request);
         }
-        if (response.isCorrect()) {
+        if (response.correct()) {
             stageManagementService.updateInProgressStage(principal, request);
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }
@@ -68,7 +72,7 @@ public class StageManagementController {
     @LogMonitoring
     @PostMapping("question/compose")
     public ResponseEntity<BasicResponse> compose(
-            @AuthenticationPrincipal PlayerPrincipal principal, @Valid @RequestBody GradingRequest request) {
+            @AuthenticationPrincipal PlayerPrincipal principal, @Valid @RequestBody QuestionGradingRequest request) {
         SuccessResponse successResponse = stageManagementService.composeVirtualWorkspace(principal, request);
 
         if (successResponse.success().equals(false)) {
@@ -85,8 +89,7 @@ public class StageManagementController {
     @LogMonitoring
     public ResponseEntity<StageCompletionResponse> completeStage(
             @AuthenticationPrincipal PlayerPrincipal principal,
-            @PathVariable(value = "stage_id") Long stageId,
-            @RequestBody StageCompletionRequest request) {
+            @PathVariable(value = "stage_id") String stageId) {
 
         StageCompletionResponse response = stageManagementService.recordStageComplete(principal, stageId);
 

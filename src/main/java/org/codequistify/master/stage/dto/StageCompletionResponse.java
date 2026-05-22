@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.stage.dto;
+package org.codequistify.master.stage.dto;
 
 public record StageCompletionResponse(
-        Integer previousExp, Integer previousLevel, Integer currentExp, Integer currentLevel) {}
+        int previousExperience, int previousLevel, int currentExperience, int currentLevel) {}

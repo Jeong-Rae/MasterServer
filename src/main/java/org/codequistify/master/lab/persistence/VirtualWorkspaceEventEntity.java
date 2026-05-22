@@ -6,7 +6,7 @@ import lombok.*;
 import org.codequistify.master.domain.lab.domain.VirtualWorkspaceEventResult;
 import org.codequistify.master.domain.lab.domain.VirtualWorkspaceEventType;
 import org.codequistify.master.domain.lab.domain.VirtualWorkspaceStatus;
-import org.codequistify.master.domain.stage.domain.StageImageType;
+import org.codequistify.master.stage.domain.StageImageType;
 
 @Getter
 @ToString
@@ -34,8 +34,8 @@ public class VirtualWorkspaceEventEntity {
     @Column(name = "player_id", nullable = false, columnDefinition = "char(36)")
     private String playerId;
 
-    @Column(name = "stage_id", nullable = false)
-    private Long stageId;
+    @Column(name = "stage_id", nullable = false, columnDefinition = "char(36)")
+    private String stageId;
 
     @Column(name = "stage_image", nullable = false, length = 30)
     @Enumerated(EnumType.STRING)

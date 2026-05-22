@@ -1,21 +1,14 @@
-package org.codequistify.master.domain.stage.repository;
+package org.codequistify.master.stage.repository;
 
-import org.codequistify.master.domain.stage.domain.Stage;
-import org.codequistify.master.domain.stage.domain.StageGroupType;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import java.util.List;
+import java.util.Optional;
+import org.codequistify.master.stage.domain.Stage;
+import org.codequistify.master.stage.domain.vo.StageId;
 
-@Repository
-public interface StageRepository extends JpaRepository<Stage, Long> {
-    Page<Stage> findByStageGroup(StageGroupType stageGroup, Pageable pageable);
+public interface StageRepository {
+    Stage save(Stage stage);
 
-    /*@Query("SELECT new org.codequistify.master.domain.stage.dto." +
-            "StageResponseTEMP(s.id, s.title, s.description, s.stageGroup, s.difficultyLevel, s.questionCount, " +
-            "CASE WHEN c IS NULL THEN 'NOT_COMPLETED' ELSE c.status END) " +
-            "FROM Stage s " +
-            "LEFT JOIN CompletedStage c ON s.id = c.stage.id AND c.player.id = :playerId")
-    List<StageResponseTEMP> findAllByPlayerIdWithCompleted(@Param("playerId") Long playerId);*/
+    Optional<Stage> findById(StageId id);
 
+    List<Stage> findAll();
 }

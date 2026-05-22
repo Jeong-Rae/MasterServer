@@ -4,12 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.lab.vo.LabApiEndpoint;
 import org.codequistify.master.domain.lab.vo.VirtualWorkspaceQuery;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
-import org.codequistify.master.domain.stage.domain.StageImageType;
-import org.codequistify.master.domain.stage.dto.StageActionRequest;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.global.http.WebRequestClient;
 import org.codequistify.master.global.util.SuccessResponse;
+import org.codequistify.master.stage.domain.StageImageType;
+import org.codequistify.master.stage.dto.StageQuestionActionRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -30,21 +30,19 @@ public class LabApiClient {
     private final WebRequestClient webRequestClient;
 
     public ResponseEntity<SuccessResponse> sendGradeRequest(
-            StageImageType stageImage, PlayerId playerId, StageActionRequest request) {
+            StageImageType stageImage, PlayerId playerId, StageQuestionActionRequest request) {
         return sendRequest("/grade", stageImage, playerId, request);
     }
 
     public ResponseEntity<SuccessResponse> sendComposeRequest(
-            StageImageType stageImage, PlayerId playerId, StageActionRequest request) {
+            StageImageType stageImage, PlayerId playerId, StageQuestionActionRequest request) {
         return sendRequest("/compose", stageImage, playerId, request);
     }
 
     private ResponseEntity<SuccessResponse> sendRequest(
-            String path, StageImageType stageImage, PlayerId playerId, StageActionRequest request) {
+            String path, StageImageType stageImage, PlayerId playerId, StageQuestionActionRequest request) {
         String url = LAB_API_ENDPOINT.url(path, VirtualWorkspaceQuery.from(stageImage, playerId));
-        StageActionRequest normalizedRequest =
-                new StageActionRequest(request.stageCode().toLowerCase(), request.questionIndex());
-        HttpEntity<StageActionRequest> entity = new HttpEntity<>(normalizedRequest, jsonHeaders());
+        HttpEntity<StageQuestionActionRequest> entity = new HttpEntity<>(request, jsonHeaders());
 
         try {
             ResponseEntity<SuccessResponse> response =

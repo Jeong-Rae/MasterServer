@@ -12,7 +12,7 @@ import org.codequistify.master.domain.lab.domain.VirtualWorkspaceEventType;
 import org.codequistify.master.domain.lab.domain.VirtualWorkspaceStatus;
 import org.codequistify.master.domain.lab.repository.VirtualWorkspaceRepository;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
-import org.codequistify.master.domain.stage.domain.StageImageType;
+import org.codequistify.master.stage.domain.StageImageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -81,7 +81,7 @@ public class KubernetesResourceCollector {
         }
         try {
             return virtualWorkspaceRepository.findLatestActiveByPlayerIdAndStageImage(
-                    playerId, StageImageType.valueOf(stage.toUpperCase()));
+                    playerId, StageImageType.fromResourceCode(stage));
         } catch (IllegalArgumentException e) {
             return Optional.empty();
         }
@@ -89,7 +89,7 @@ public class KubernetesResourceCollector {
 
     private Optional<VirtualWorkspace> findByStageId(PlayerId playerId, String stageId) {
         try {
-            return virtualWorkspaceRepository.findLatestActiveByPlayerIdAndStageId(playerId, Long.parseLong(stageId));
+            return virtualWorkspaceRepository.findLatestActiveByPlayerIdAndStageId(playerId, stageId);
         } catch (NumberFormatException e) {
             return Optional.empty();
         }

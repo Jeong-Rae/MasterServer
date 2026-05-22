@@ -9,10 +9,10 @@ import org.codequistify.master.domain.lab.dto.VirtualWorkspaceExistsResponse;
 import org.codequistify.master.domain.lab.service.VirtualWorkspaceService;
 import org.codequistify.master.domain.lab.vo.VirtualWorkspaceHost;
 import org.codequistify.master.domain.player.security.PlayerPrincipal;
-import org.codequistify.master.domain.stage.domain.Stage;
-import org.codequistify.master.domain.stage.service.impl.StageSearchServiceImpl;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
+import org.codequistify.master.stage.domain.Stage;
+import org.codequistify.master.stage.service.StageSearchService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Lab")
 public class LabController {
     private final VirtualWorkspaceService virtualWorkspaceService;
-    private final StageSearchServiceImpl stageSearchService;
+    private final StageSearchService stageSearchService;
 
     private static final VirtualWorkspaceHost LAB_HOST = VirtualWorkspaceHost.lab();
 
@@ -41,7 +41,7 @@ public class LabController {
     @LogMonitoring
     @PostMapping("lab/terminal/stage/{stage_id}")
     public ResponseEntity<VirtualWorkspaceCreateResponse> applyVirtualWorkspace(
-            @AuthenticationPrincipal PlayerPrincipal principal, @PathVariable(name = "stage_id") Long stageId) {
+            @AuthenticationPrincipal PlayerPrincipal principal, @PathVariable(name = "stage_id") String stageId) {
         Stage stage = stageSearchService.getStageById(stageId);
 
         return virtualWorkspaceService
@@ -60,7 +60,7 @@ public class LabController {
     @GetMapping("lab/terminal/access-url/{stage_id}")
     @LogMonitoring
     public ResponseEntity<VirtualWorkspaceCreateResponse> getVirtualWorkspaceAccessUrl(
-            @AuthenticationPrincipal PlayerPrincipal principal, @PathVariable(name = "stage_id") Long stageId) {
+            @AuthenticationPrincipal PlayerPrincipal principal, @PathVariable(name = "stage_id") String stageId) {
         Stage stage = stageSearchService.getStageById(stageId);
         VirtualWorkspace workspace = virtualWorkspaceService.getRunningVirtualWorkspace(principal, stage);
 
@@ -76,13 +76,13 @@ public class LabController {
     @LogExecutionTime
     @GetMapping("/lab/terminal/existence/{stage_id}")
     public ResponseEntity<VirtualWorkspaceExistsResponse> checkVirtualWorkspaceExistence(
-            @AuthenticationPrincipal PlayerPrincipal principal, @PathVariable(name = "stage_id") Long stageId) {
+            @AuthenticationPrincipal PlayerPrincipal principal, @PathVariable(name = "stage_id") String stageId) {
         Stage stage = stageSearchService.getStageById(stageId);
 
         boolean stageExists = virtualWorkspaceService.existsRunningVirtualWorkspace(principal, stage);
 
-        VirtualWorkspaceExistsResponse response = new VirtualWorkspaceExistsResponse(
-                principal.id().value(), stageId, stage.getStageImage().name(), stageExists);
+        VirtualWorkspaceExistsResponse response =
+                new VirtualWorkspaceExistsResponse(principal.id().value(), stageId, stage.stageCode(), stageExists);
 
         return ResponseEntity.ok(response);
     }

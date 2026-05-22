@@ -5,6 +5,6 @@ import org.codequistify.master.domain.authentication.domain.EmailVerificationTyp
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface EmailVerificationJpaRepository extends JpaRepository<EmailVerificationEntity, Long> {
-    Optional<EmailVerificationEntity> findFirstByEmailAndUsedAndEmailVerificationTypeOrderByCreatedDateDesc(
+    Optional<EmailVerificationEntity> findFirstByEmailAndUsedAndEmailVerificationTypeOrderByCreatedAtDesc(
             String email, Boolean used, EmailVerificationType type);
 }

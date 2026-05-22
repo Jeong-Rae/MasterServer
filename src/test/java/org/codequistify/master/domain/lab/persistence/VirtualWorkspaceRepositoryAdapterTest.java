@@ -6,7 +6,7 @@ import org.codequistify.master.domain.lab.domain.VirtualWorkspace;
 import org.codequistify.master.domain.lab.domain.vo.VirtualWorkspaceStage;
 import org.codequistify.master.domain.lab.repository.VirtualWorkspaceRepository;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
-import org.codequistify.master.domain.stage.domain.StageImageType;
+import org.codequistify.master.stage.domain.StageImageType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -23,13 +23,13 @@ class VirtualWorkspaceRepositoryAdapterTest {
     void RUNNING_상태의_VirtualWorkspace를_player와_stage로_조회한다() {
         PlayerId playerId = new PlayerId("player-id");
         VirtualWorkspace workspace = VirtualWorkspace.startFor(
-                        playerId, new VirtualWorkspaceStage(1L, StageImageType.S1001))
+                        playerId, new VirtualWorkspaceStage("1", StageImageType.S1001))
                 .startProvisioning()
                 .markRunning();
 
         virtualWorkspaceRepository.save(workspace);
 
-        assertThat(virtualWorkspaceRepository.findRunningByPlayerIdAndStageId(playerId, 1L))
+        assertThat(virtualWorkspaceRepository.findRunningByPlayerIdAndStageId(playerId, "1"))
                 .isPresent()
                 .get()
                 .extracting(VirtualWorkspace::status)
@@ -40,7 +40,7 @@ class VirtualWorkspaceRepositoryAdapterTest {
     void DELETED_상태의_VirtualWorkspace는_RUNNING_조회에서_제외한다() {
         PlayerId playerId = new PlayerId("player-id");
         VirtualWorkspace workspace = VirtualWorkspace.startFor(
-                        playerId, new VirtualWorkspaceStage(1L, StageImageType.S1001))
+                        playerId, new VirtualWorkspaceStage("1", StageImageType.S1001))
                 .startProvisioning()
                 .markRunning()
                 .startDeleting()
@@ -48,7 +48,7 @@ class VirtualWorkspaceRepositoryAdapterTest {
 
         virtualWorkspaceRepository.save(workspace);
 
-        assertThat(virtualWorkspaceRepository.findRunningByPlayerIdAndStageId(playerId, 1L))
+        assertThat(virtualWorkspaceRepository.findRunningByPlayerIdAndStageId(playerId, "1"))
                 .isEmpty();
     }
 }

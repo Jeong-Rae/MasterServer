@@ -6,12 +6,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
-import org.codequistify.master.domain.stage.domain.StageImageType;
-import org.codequistify.master.domain.stage.dto.StageActionRequest;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.global.http.WebRequestClient;
 import org.codequistify.master.global.util.SuccessResponse;
+import org.codequistify.master.stage.domain.StageImageType;
+import org.codequistify.master.stage.dto.StageQuestionActionRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,10 +41,10 @@ class LabApiClientTest {
                 .thenReturn(ResponseEntity.ok(new SuccessResponse(true)));
 
         ResponseEntity<SuccessResponse> result = labApiClient.sendGradeRequest(
-                StageImageType.S1001, new PlayerId("player-id"), new StageActionRequest("StageA", 1));
+                StageImageType.S1001, new PlayerId("player-id"), new StageQuestionActionRequest("StageA", 1));
 
         ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<HttpEntity<StageActionRequest>> entityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+        ArgumentCaptor<HttpEntity<StageQuestionActionRequest>> entityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
         org.mockito.Mockito.verify(webRequestClient)
                 .postForEntity(
                         urlCaptor.capture(),
@@ -62,7 +62,7 @@ class LabApiClientTest {
                         ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new SuccessResponse(false)));
 
         assertThatThrownBy(() -> labApiClient.sendComposeRequest(
-                        StageImageType.S1001, new PlayerId("player-id"), new StageActionRequest("StageA", 1)))
+                        StageImageType.S1001, new PlayerId("player-id"), new StageQuestionActionRequest("StageA", 1)))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.FAIL_PROCEED);

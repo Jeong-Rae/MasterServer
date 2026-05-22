@@ -1,9 +1,9 @@
 package org.codequistify.master.domain.lab.domain.vo;
 
-import org.codequistify.master.domain.stage.domain.Stage;
-import org.codequistify.master.domain.stage.domain.StageImageType;
+import org.codequistify.master.stage.domain.Stage;
+import org.codequistify.master.stage.domain.StageImageType;
 
-public record VirtualWorkspaceStage(Long id, StageImageType image) {
+public record VirtualWorkspaceStage(String id, StageImageType image) {
     public VirtualWorkspaceStage {
         if (id == null) {
             throw new IllegalArgumentException("virtual workspace stage id must not be null");
@@ -14,6 +14,6 @@ public record VirtualWorkspaceStage(Long id, StageImageType image) {
     }
 
     public static VirtualWorkspaceStage from(Stage stage) {
-        return new VirtualWorkspaceStage(stage.getId(), stage.getStageImage());
+        return new VirtualWorkspaceStage(stage.id().value(), stage.stageImage());
     }
 }

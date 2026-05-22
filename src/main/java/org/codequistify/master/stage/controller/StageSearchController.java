@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.stage.controller;
+package org.codequistify.master.stage.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -6,16 +6,17 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.security.PlayerPrincipal;
-import org.codequistify.master.domain.stage.convertoer.StageConverter;
-import org.codequistify.master.domain.stage.dto.QuestionResponse;
-import org.codequistify.master.domain.stage.dto.SearchCriteria;
-import org.codequistify.master.domain.stage.dto.StagePageResponse;
-import org.codequistify.master.domain.stage.dto.StageResponse;
-import org.codequistify.master.domain.stage.service.StageManagementService;
-import org.codequistify.master.domain.stage.service.StageSearchService;
-import org.codequistify.master.domain.stage.utils.HangulExtractor;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
+import org.codequistify.master.stage.domain.CompletedStatus;
+import org.codequistify.master.stage.domain.Stage;
+import org.codequistify.master.stage.dto.StageQuestionResponse;
+import org.codequistify.master.stage.dto.StageSearchRequest;
+import org.codequistify.master.stage.dto.StagePageResponse;
+import org.codequistify.master.stage.dto.StageResponse;
+import org.codequistify.master.stage.service.StageManagementService;
+import org.codequistify.master.stage.service.StageSearchService;
+import org.codequistify.master.stage.utils.HangulExtractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -60,8 +61,8 @@ public class StageSearchController {
     @LogExecutionTime
     @GetMapping("stages")
     public ResponseEntity<StagePageResponse> findAllStagesByCriteria(
-            @AuthenticationPrincipal PlayerPrincipal principal, @Valid @ModelAttribute SearchCriteria searchCriteria) {
-        StagePageResponse stages = stageSearchService.findStagesByCriteria(searchCriteria, principal);
+            @AuthenticationPrincipal PlayerPrincipal principal, @Valid @ModelAttribute StageSearchRequest searchRequest) {
+        StagePageResponse stages = stageSearchService.findStagesByCriteria(searchRequest, principal);
 
         return ResponseEntity.status(HttpStatus.OK).body(stages);
     }
@@ -69,8 +70,9 @@ public class StageSearchController {
     @Operation(summary = "스테이지 조회", description = "스테이지을 조회합니다. completedStatus는 항상 `null`로 기록 되어 있습니다.")
     @LogExecutionTime
     @GetMapping("stages/{stage_id}")
-    public ResponseEntity<StageResponse> getStageInfoById(@PathVariable(value = "stage_id") Long stageId) {
-        StageResponse response = StageConverter.convert(stageSearchService.getStageById(stageId));
+    public ResponseEntity<StageResponse> getStageInfoById(@PathVariable(value = "stage_id") String stageId) {
+        Stage stage = stageSearchService.getStageById(stageId);
+        StageResponse response = StageResponse.from(stage, CompletedStatus.NOT_COMPLETED);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -79,10 +81,9 @@ public class StageSearchController {
     // 스테이지 문항 조회 -> 정답은 클라이언트에게 제공 안 됨, 옵션들은 전부 제공되어야 함
     @LogMonitoring
     @GetMapping("stages/{stage_id}/questions/{question_index}")
-    public ResponseEntity<QuestionResponse> getQuestionByStage(
-            @PathVariable(name = "stage_id") Long stageId,
-            @PathVariable(name = "question_index") Integer questionIndex) {
-        QuestionResponse response = stageSearchService.findQuestion(stageId, questionIndex);
+    public ResponseEntity<StageQuestionResponse> getQuestionByStage(
+            @PathVariable(name = "stage_id") String stageId, @PathVariable(name = "question_index") int questionIndex) {
+        StageQuestionResponse response = stageSearchService.findQuestion(stageId, questionIndex);
 
         LOGGER.info("[getQuestionByStage] 문제 조회 완료 id: {}, index: {}", stageId, questionIndex);
         return ResponseEntity.status(HttpStatus.OK).body(response);
