@@ -1,5 +1,6 @@
 package org.codequistify.master.stage.persistence;
 
+import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface QuestionAttemptJpaRepository extends JpaRepository<QuestionAttemptEntity, String> {}
+public interface QuestionAttemptJpaRepository extends JpaRepository<QuestionAttemptEntity, UUID> {}

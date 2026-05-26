@@ -1,7 +1,7 @@
 package org.codequistify.master.global.exception;
 
 import org.codequistify.master.global.exception.domain.BusinessException;
-import org.codequistify.master.global.util.BasicResponse;
+import org.codequistify.master.shared.response.BasicResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

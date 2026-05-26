@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.authentication.vo.OAuthToken;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
-import org.codequistify.master.global.http.WebRequestClient;
+import org.codequistify.master.shared.http.WebRequestClient;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;

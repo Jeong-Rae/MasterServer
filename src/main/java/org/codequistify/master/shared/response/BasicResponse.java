@@ -1,4 +1,4 @@
-package org.codequistify.master.global.util;
+package org.codequistify.master.shared.response;
 
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.springframework.http.ResponseEntity;

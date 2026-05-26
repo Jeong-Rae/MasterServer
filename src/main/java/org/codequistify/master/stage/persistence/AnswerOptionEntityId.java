@@ -1,16 +1,15 @@
 package org.codequistify.master.stage.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.UUID;
 
 @Embeddable
 public class AnswerOptionEntityId implements Serializable {
-    @Convert(converter = UuidStringBinaryConverter.class)
-    @Column(name = "stage_id", columnDefinition = "BINARY(16)", nullable = false)
-    private String stageId;
+    @Column(name = "stage_id", nullable = false)
+    private UUID stageId;
 
     @Column(name = "question_index", nullable = false)
     private int questionIndex;
@@ -20,13 +19,13 @@ public class AnswerOptionEntityId implements Serializable {
 
     protected AnswerOptionEntityId() {}
 
-    public AnswerOptionEntityId(String stageId, int questionIndex, int optionIndex) {
+    public AnswerOptionEntityId(UUID stageId, int questionIndex, int optionIndex) {
         this.stageId = stageId;
         this.questionIndex = questionIndex;
         this.optionIndex = optionIndex;
     }
 
-    public String stageId() {
+    public UUID stageId() {
         return stageId;
     }
 

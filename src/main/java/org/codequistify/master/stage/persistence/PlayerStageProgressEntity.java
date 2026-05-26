@@ -7,7 +7,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
-import org.codequistify.master.global.util.BaseTimeEntity;
+import org.codequistify.master.shared.persistence.BaseTimeEntity;
 import org.codequistify.master.stage.domain.SolvingStatus;
 
 @Entity
@@ -22,9 +22,6 @@ public class PlayerStageProgressEntity extends BaseTimeEntity {
 
     @Column(name = "current_question_index")
     private Integer currentQuestionIndex;
-
-    @Column(name = "completed_question_count", nullable = false)
-    private int completedQuestionCount;
 
     @Column(name = "started_at")
     private LocalDateTime startedAt;
@@ -41,14 +38,12 @@ public class PlayerStageProgressEntity extends BaseTimeEntity {
             PlayerStageProgressEntityId id,
             SolvingStatus status,
             Integer currentQuestionIndex,
-            int completedQuestionCount,
             LocalDateTime startedAt,
             LocalDateTime lastSolvedAt,
             LocalDateTime completedAt) {
         this.id = id;
         this.status = status;
         this.currentQuestionIndex = currentQuestionIndex;
-        this.completedQuestionCount = completedQuestionCount;
         this.startedAt = startedAt;
         this.lastSolvedAt = lastSolvedAt;
         this.completedAt = completedAt;
@@ -58,8 +53,7 @@ public class PlayerStageProgressEntity extends BaseTimeEntity {
             PlayerStageProgressEntityId id, SolvingStatus status, int currentQuestionIndex) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime completedAt = status == SolvingStatus.COMPLETED ? now : null;
-        return new PlayerStageProgressEntity(
-                id, status, currentQuestionIndex, currentQuestionIndex, now, now, completedAt);
+        return new PlayerStageProgressEntity(id, status, currentQuestionIndex, now, now, completedAt);
     }
 
     public PlayerStageProgressEntityId id() {

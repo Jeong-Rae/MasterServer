@@ -1,4 +1,4 @@
-package org.codequistify.master.global.config;
+package org.codequistify.master.domain.authentication.config;
 
 import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;

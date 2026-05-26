@@ -6,7 +6,7 @@ import org.codequistify.master.domain.authentication.vo.OAuthData;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.domain.authentication.OAuthType;
 import org.codequistify.master.domain.player.domain.vo.OAuthAccessToken;
-import org.codequistify.master.domain.player.dto.PlayerProfile;
+import org.codequistify.master.domain.player.dto.PlayerProfileResponse;
 import org.codequistify.master.domain.player.security.PlayerDetailsService;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
@@ -26,13 +26,13 @@ public class OAuthSignService {
 
     @Transactional
     @LogMonitoring
-    public PlayerProfile login(OAuthType type, OAuthCode code) {
+    public PlayerProfileResponse login(OAuthType type, OAuthCode code) {
         OAuthData oAuthData = oAuthStrategies.find(type).fetchOAuthData(code);
         Player player = findOrCreatePlayer(type, oAuthData)
                 .updateOAuthAccessToken(new OAuthAccessToken(oAuthData.token().access_token()));
 
         player = playerDetailsService.save(player);
-        return PlayerProfile.from(player);
+        return PlayerProfileResponse.from(player);
     }
 
     private Player findOrCreatePlayer(OAuthType type, OAuthData oAuthData) {

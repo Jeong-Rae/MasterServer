@@ -2,6 +2,7 @@ package org.codequistify.master.stage.persistence;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import org.codequistify.master.stage.domain.AnswerType;
 import org.codequistify.master.stage.domain.Question;
 import org.codequistify.master.stage.domain.Stage;
@@ -19,7 +20,7 @@ public final class StagePersistenceMapper {
 
     public static StageEntity toEntity(Stage stage) {
         StageEntity entity = StageEntity.create(
-                stage.id() == null ? null : stage.id().value(),
+                stage.id() == null ? null : UUID.fromString(stage.id().value()),
                 stage.title(),
                 stage.description(),
                 stage.stageGroup(),
@@ -41,7 +42,7 @@ public final class StagePersistenceMapper {
                 .toList();
 
         return Stage.builder()
-                .id(StageId.of(entity.id()))
+                .id(StageId.of(entity.id().toString()))
                 .title(entity.title())
                 .description(entity.description())
                 .stageGroup(entity.stageGroup())
@@ -62,7 +63,7 @@ public final class StagePersistenceMapper {
                 .build();
     }
 
-    private static QuestionEntity toQuestionEntity(String stageId, Question question) {
+    private static QuestionEntity toQuestionEntity(UUID stageId, Question question) {
         QuestionEntityId id = new QuestionEntityId(stageId, question.index().value());
         return QuestionEntity.create(
                 id, question.title(), question.description(), toAnswerEntity(id, question.answer()));

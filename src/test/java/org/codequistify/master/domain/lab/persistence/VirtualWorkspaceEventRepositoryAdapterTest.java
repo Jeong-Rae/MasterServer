@@ -19,26 +19,29 @@ import org.springframework.context.annotation.Import;
 @DataJpaTest
 @Import({VirtualWorkspaceEventRepositoryAdapter.class, VirtualWorkspaceEventPersistenceMapper.class})
 class VirtualWorkspaceEventRepositoryAdapterTest {
+    private static final String PLAYER_UUID = "018f3f32-6d4e-7b7a-8c9d-1234567890ab";
+    private static final String STAGE_UUID = "018f3f32-6d4e-7b7a-8c9d-1234567890ac";
+    private static final String WORKSPACE_UUID = "018f3f32-6d4e-7b7a-8c9d-1234567890ad";
 
     @Autowired
     private VirtualWorkspaceEventRepository virtualWorkspaceEventRepository;
 
     @Test
     void VirtualWorkspace_상태변경_이벤트를_workspace_id와_발생시각순으로_조회한다() {
-        VirtualWorkspaceId workspaceId = new VirtualWorkspaceId("workspace-id");
+        VirtualWorkspaceId workspaceId = new VirtualWorkspaceId(WORKSPACE_UUID);
         VirtualWorkspaceStateChangeEvent requested = event(
                 workspaceId,
                 VirtualWorkspaceEventType.WORKSPACE_REQUESTED,
                 null,
                 VirtualWorkspaceStatus.REQUESTED,
-                "workspace-id:WORKSPACE_REQUESTED:null:REQUESTED",
+                WORKSPACE_UUID + ":WORKSPACE_REQUESTED:null:REQUESTED",
                 LocalDateTime.of(2024, 5, 19, 1, 0));
         VirtualWorkspaceStateChangeEvent provisioning = event(
                 workspaceId,
                 VirtualWorkspaceEventType.PROVISIONING_STARTED,
                 VirtualWorkspaceStatus.REQUESTED,
                 VirtualWorkspaceStatus.PROVISIONING,
-                "workspace-id:PROVISIONING_STARTED:REQUESTED:PROVISIONING",
+                WORKSPACE_UUID + ":PROVISIONING_STARTED:REQUESTED:PROVISIONING",
                 LocalDateTime.of(2024, 5, 19, 1, 1));
 
         virtualWorkspaceEventRepository.saveIfAbsent(provisioning);
@@ -52,7 +55,7 @@ class VirtualWorkspaceEventRepositoryAdapterTest {
 
     @Test
     void 같은_idempotency_key는_중복_저장하지_않고_기존_이벤트를_반환한다() {
-        VirtualWorkspaceId workspaceId = new VirtualWorkspaceId("workspace-id");
+        VirtualWorkspaceId workspaceId = new VirtualWorkspaceId(WORKSPACE_UUID);
         VirtualWorkspaceStateChangeEvent first = event(
                 workspaceId,
                 VirtualWorkspaceEventType.WORKSPACE_REQUESTED,
@@ -85,8 +88,8 @@ class VirtualWorkspaceEventRepositoryAdapterTest {
             LocalDateTime occurredAt) {
         return VirtualWorkspaceStateChangeEvent.success(
                 workspaceId,
-                new PlayerId("player-id"),
-                new VirtualWorkspaceStage("1", StageImageType.S1001),
+                new PlayerId(PLAYER_UUID),
+                new VirtualWorkspaceStage(STAGE_UUID, StageImageType.S1001),
                 eventType,
                 fromStatus,
                 toStatus,

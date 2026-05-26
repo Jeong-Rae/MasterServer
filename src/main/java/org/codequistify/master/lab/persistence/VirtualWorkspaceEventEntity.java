@@ -1,7 +1,15 @@
 package org.codequistify.master.domain.lab.persistence;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.*;
 import org.codequistify.master.domain.lab.domain.VirtualWorkspaceEventResult;
 import org.codequistify.master.domain.lab.domain.VirtualWorkspaceEventType;
@@ -25,17 +33,17 @@ import org.codequistify.master.stage.domain.StageImageType;
         })
 public class VirtualWorkspaceEventEntity {
     @Id
-    @Column(name = "id", columnDefinition = "char(36)")
-    private String id;
+    @Column(name = "id")
+    private UUID id;
 
-    @Column(name = "workspace_id", nullable = false, columnDefinition = "char(36)")
-    private String workspaceId;
+    @Column(name = "workspace_id", nullable = false)
+    private UUID workspaceId;
 
-    @Column(name = "player_id", nullable = false, columnDefinition = "char(36)")
-    private String playerId;
+    @Column(name = "player_id", nullable = false)
+    private UUID playerId;
 
-    @Column(name = "stage_id", nullable = false, columnDefinition = "char(36)")
-    private String stageId;
+    @Column(name = "stage_id", nullable = false)
+    private UUID stageId;
 
     @Column(name = "stage_image", nullable = false, length = 30)
     @Enumerated(EnumType.STRING)

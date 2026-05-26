@@ -1,4 +1,4 @@
-package org.codequistify.master.global.lock;
+package org.codequistify.master.domain.lab.service;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;

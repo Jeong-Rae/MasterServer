@@ -8,8 +8,10 @@ import org.codequistify.master.domain.lab.domain.VirtualWorkspaceStateChangeEven
 import org.codequistify.master.domain.lab.domain.VirtualWorkspaceStatus;
 import org.codequistify.master.domain.lab.repository.VirtualWorkspaceEventRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class VirtualWorkspaceStateChangeLogger {
     private final VirtualWorkspaceEventRepository virtualWorkspaceEventRepository;

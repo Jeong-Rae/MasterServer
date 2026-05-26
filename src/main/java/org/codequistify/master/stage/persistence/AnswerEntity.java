@@ -14,7 +14,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
-import org.codequistify.master.global.util.BaseTimeEntity;
+import org.codequistify.master.shared.persistence.BaseTimeEntity;
 import org.codequistify.master.stage.domain.AnswerType;
 
 @Entity

@@ -34,33 +34,33 @@ public class PlayerDetailsService implements UserDetailsService {
     private final Logger LOGGER = LoggerFactory.getLogger(PlayerDetailsService.class);
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     @LogExecutionTime
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         LOGGER.info("[loadUserByUsername] loadUserByUsername: {}", username);
         return playerPrincipalMapper.toPrincipal(findOnePlayerById(username));
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public UserDetails loadUserByEmail(String email) {
         return playerPrincipalMapper.toPrincipal(findOnePlayerByEmail(email));
     }
 
     @Transactional
     @LogMonitoring
-    public void resetPassword(PlayerPrincipal principal, UpdatePasswordRequest request) {
+    public void resetPassword(AuthenticatedPlayer requester, UpdatePasswordRequest request) {
         RawPassword rawPassword = middleLevelPassword(request.password());
         Player player =
-                findOnePlayerById(principal.id().value()).withHashedPassword(hashPasswordEncoder.encode(rawPassword));
+                findOnePlayerById(requester.id().value()).withHashedPassword(hashPasswordEncoder.encode(rawPassword));
         playerRepository.save(player);
         LOGGER.info("[resetPassword] Player: {}, 비밀번호 초기화 성공", player.id().value());
     }
 
     @Transactional
     @LogMonitoring
-    public void updatePassword(PlayerPrincipal principal, UpdatePasswordRequest request) {
+    public void updatePassword(AuthenticatedPlayer requester, UpdatePasswordRequest request) {
         RawPassword newPassword = middleLevelPassword(request.password());
-        Player player = findOnePlayerById(principal.id().value());
+        Player player = findOnePlayerById(requester.id().value());
         if (!matchesPassword(request.rawPassword(), player)) {
             throw new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
         }
@@ -74,17 +74,17 @@ public class PlayerDetailsService implements UserDetailsService {
         return playerRepository.save(player);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public boolean isExistPlayer(String email) {
         return playerRepository.existsPlayerByEmail(new PlayerEmail(email));
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Optional<OAuthType> checkOAuthType(String email) {
         return playerRepository.findAuthenticationTypeByEmail(new PlayerEmail(email));
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Player findOnePlayerByEmail(String email) {
         return playerRepository.findPlayerByEmail(new PlayerEmail(email)).orElseThrow(() -> {
             LOGGER.info("[findOnePlayerByEmail] 존재하지 않는 email 입니다. email: {}", email);
@@ -92,7 +92,7 @@ public class PlayerDetailsService implements UserDetailsService {
         });
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Player findOnePlayerById(String id) {
         return playerRepository.findPlayerById(new PlayerId(id)).orElseThrow(() -> {
             LOGGER.info("[findOnePlayerById] 존재하지 않는 player 입니다. id: {}", id);
@@ -107,8 +107,8 @@ public class PlayerDetailsService implements UserDetailsService {
 
     @Transactional
     @LogMonitoring
-    public void deletePlayer(PlayerPrincipal principal) {
-        Player player = findOnePlayerById(principal.id().value()).transition(PlayerStatusTransition.DELETE);
+    public void deletePlayer(AuthenticatedPlayer requester) {
+        Player player = findOnePlayerById(requester.id().value()).transition(PlayerStatusTransition.DELETE);
         playerRepository.save(player);
     }
 

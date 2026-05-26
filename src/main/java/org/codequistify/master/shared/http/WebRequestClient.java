@@ -1,4 +1,4 @@
-package org.codequistify.master.global.http;
+package org.codequistify.master.shared.http;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;

@@ -2,6 +2,7 @@ package org.codequistify.master.domain.lab.persistence;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.lab.domain.VirtualWorkspace;
 import org.codequistify.master.domain.lab.domain.VirtualWorkspaceStatus;
@@ -27,7 +28,7 @@ public class VirtualWorkspaceRepositoryAdapter implements VirtualWorkspaceReposi
     public Optional<VirtualWorkspace> findRunningByPlayerIdAndStageId(PlayerId playerId, String stageId) {
         return virtualWorkspaceJpaRepository
                 .findFirstByPlayerIdAndStageIdAndStatusOrderByUpdatedAtDesc(
-                        playerId.value(), stageId, VirtualWorkspaceStatus.RUNNING)
+                        UUID.fromString(playerId.value()), UUID.fromString(stageId), VirtualWorkspaceStatus.RUNNING)
                 .map(virtualWorkspacePersistenceMapper::toDomain);
     }
 
@@ -35,7 +36,7 @@ public class VirtualWorkspaceRepositoryAdapter implements VirtualWorkspaceReposi
     public Optional<VirtualWorkspace> findLatestActiveByPlayerIdAndStageId(PlayerId playerId, String stageId) {
         return virtualWorkspaceJpaRepository
                 .findFirstByPlayerIdAndStageIdAndStatusInOrderByUpdatedAtDesc(
-                        playerId.value(), stageId, activeStatuses())
+                        UUID.fromString(playerId.value()), UUID.fromString(stageId), activeStatuses())
                 .map(virtualWorkspacePersistenceMapper::toDomain);
     }
 
@@ -44,7 +45,7 @@ public class VirtualWorkspaceRepositoryAdapter implements VirtualWorkspaceReposi
             PlayerId playerId, StageImageType stageImage) {
         return virtualWorkspaceJpaRepository
                 .findFirstByPlayerIdAndStageImageAndStatusInOrderByUpdatedAtDesc(
-                        playerId.value(), stageImage, activeStatuses())
+                        UUID.fromString(playerId.value()), stageImage, activeStatuses())
                 .map(virtualWorkspacePersistenceMapper::toDomain);
     }
 

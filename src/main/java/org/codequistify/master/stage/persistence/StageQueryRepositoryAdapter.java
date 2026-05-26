@@ -8,11 +8,12 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
 import org.codequistify.master.stage.domain.CompletedStatus;
 import org.codequistify.master.stage.domain.SolvingStatus;
-import org.codequistify.master.stage.dto.StageAttemptHeatMapPoint;
+import org.codequistify.master.stage.dto.StageAttemptHeatMapPointResponse;
 import org.codequistify.master.stage.dto.StageCodeResponse;
 import org.codequistify.master.stage.dto.StageResponse;
 import org.codequistify.master.stage.dto.StageSearchRequest;
@@ -32,6 +33,7 @@ public class StageQueryRepositoryAdapter implements StageQueryRepository {
             StageSearchRequest searchRequest, PlayerId playerId, Pageable pageable) {
         QStageEntity stage = QStageEntity.stageEntity;
         QPlayerStageProgressEntity progress = QPlayerStageProgressEntity.playerStageProgressEntity;
+        UUID playerUuid = UUID.fromString(playerId.value());
         BooleanBuilder where = stageWhere(searchRequest, stage, progress, playerId);
 
         List<Tuple> rows = queryFactory
@@ -46,8 +48,9 @@ public class StageQueryRepositoryAdapter implements StageQueryRepository {
                         progress.status)
                 .from(stage)
                 .leftJoin(progress)
-                .on(progress.id.stageId.eq(stage.id).and(progress.id.playerId.eq(playerId.value())))
+                .on(progress.id.stageId.eq(stage.id).and(progress.id.playerId.eq(playerUuid)))
                 .where(where)
+                .orderBy(stage.createdAt.desc(), stage.id.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -56,13 +59,13 @@ public class StageQueryRepositoryAdapter implements StageQueryRepository {
                 .select(stage.count())
                 .from(stage)
                 .leftJoin(progress)
-                .on(progress.id.stageId.eq(stage.id).and(progress.id.playerId.eq(playerId.value())))
+                .on(progress.id.stageId.eq(stage.id).and(progress.id.playerId.eq(playerUuid)))
                 .where(where)
                 .fetchOne();
 
         List<StageResponse> responses = rows.stream()
                 .map(row -> new StageResponse(
-                        row.get(stage.id),
+                        row.get(stage.id).toString(),
                         row.get(stage.stageImage).code(),
                         row.get(stage.title),
                         row.get(stage.description),
@@ -79,13 +82,14 @@ public class StageQueryRepositoryAdapter implements StageQueryRepository {
     public List<StageCodeResponse> findStageCodesByProgressStatus(PlayerId playerId, CompletedStatus status) {
         QStageEntity stage = QStageEntity.stageEntity;
         QPlayerStageProgressEntity progress = QPlayerStageProgressEntity.playerStageProgressEntity;
+        UUID playerUuid = UUID.fromString(playerId.value());
 
         return queryFactory
                 .select(stage.stageImage)
                 .from(progress)
                 .join(stage)
                 .on(stage.id.eq(progress.id.stageId))
-                .where(progress.id.playerId.eq(playerId.value()).and(progress.status.eq(solvingStatusOf(status))))
+                .where(progress.id.playerId.eq(playerUuid).and(progress.status.eq(solvingStatusOf(status))))
                 .fetch()
                 .stream()
                 .map(StageCodeResponse::of)
@@ -93,19 +97,20 @@ public class StageQueryRepositoryAdapter implements StageQueryRepository {
     }
 
     @Override
-    public List<StageAttemptHeatMapPoint> countAttemptByDate(PlayerId playerId) {
+    public List<StageAttemptHeatMapPointResponse> countAttemptByDate(PlayerId playerId) {
         QQuestionAttemptEntity attempt = QQuestionAttemptEntity.questionAttemptEntity;
+        UUID playerUuid = UUID.fromString(playerId.value());
         DateExpression<LocalDate> attemptedDate =
                 Expressions.dateTemplate(LocalDate.class, "date({0})", attempt.attemptedAt);
 
         return queryFactory
                 .select(attemptedDate, attempt.count())
                 .from(attempt)
-                .where(attempt.playerId.eq(playerId.value()))
+                .where(attempt.playerId.eq(playerUuid))
                 .groupBy(attemptedDate)
                 .fetch()
                 .stream()
-                .map(row -> new StageAttemptHeatMapPoint(row.get(attemptedDate), row.get(attempt.count())))
+                .map(row -> new StageAttemptHeatMapPointResponse(row.get(attemptedDate), row.get(attempt.count())))
                 .toList();
     }
 
@@ -131,7 +136,7 @@ public class StageQueryRepositoryAdapter implements StageQueryRepository {
                         .limit(1)
                         .fetchOne())
                 .map(row -> new StageResponse(
-                        row.get(stage.id),
+                        row.get(stage.id).toString(),
                         row.get(stage.stageImage).code(),
                         row.get(stage.title),
                         row.get(stage.description),
@@ -142,7 +147,10 @@ public class StageQueryRepositoryAdapter implements StageQueryRepository {
     }
 
     private BooleanBuilder stageWhere(
-            StageSearchRequest searchRequest, QStageEntity stage, QPlayerStageProgressEntity progress, PlayerId playerId) {
+            StageSearchRequest searchRequest,
+            QStageEntity stage,
+            QPlayerStageProgressEntity progress,
+            PlayerId playerId) {
         BooleanBuilder where = new BooleanBuilder();
         where.and(stage.status.eq(StageStatus.APPROVED));
 
@@ -168,7 +176,7 @@ public class StageQueryRepositoryAdapter implements StageQueryRepository {
         if (searchRequest.getCompletedStatus() == CompletedStatus.NOT_COMPLETED) {
             return where.and(progress.id.playerId.isNull());
         }
-        return where.and(progress.id.playerId.eq(playerId.value()))
+        return where.and(progress.id.playerId.eq(UUID.fromString(playerId.value())))
                 .and(progress.status.eq(solvingStatusOf(searchRequest.getCompletedStatus())));
     }
 

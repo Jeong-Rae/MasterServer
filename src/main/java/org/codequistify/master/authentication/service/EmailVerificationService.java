@@ -71,7 +71,7 @@ public class EmailVerificationService {
     }
 
     // 이메일 인증이 되어있는지 확인
-    @Transactional
+    @Transactional(readOnly = true)
     public EmailVerification verifyEmailAndRetrieve(String email, EmailVerificationType type) {
         EmailVerification emailVerification = this.getEmailVerificationByEmail(email, false, type);
 
@@ -85,7 +85,7 @@ public class EmailVerificationService {
 
     // 인증정보 가져오기
     @LogMonitoring
-    @Transactional
+    @Transactional(readOnly = true)
     public EmailVerification getEmailVerificationByEmail(String email, Boolean used, EmailVerificationType type) {
         return emailVerificationRepository
                 .findLatestByEmailAndUsedAndType(new EmailAddress(email), used, type)

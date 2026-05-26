@@ -6,7 +6,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
 import org.codequistify.master.domain.player.domain.vo.OAuthAccessToken;
-import org.codequistify.master.global.http.WebRequestClient;
+import org.codequistify.master.shared.http.WebRequestClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

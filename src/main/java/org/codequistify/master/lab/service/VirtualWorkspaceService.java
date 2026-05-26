@@ -9,15 +9,15 @@ import org.codequistify.master.domain.lab.domain.VirtualWorkspaceEventType;
 import org.codequistify.master.domain.lab.domain.VirtualWorkspaceStatus;
 import org.codequistify.master.domain.lab.domain.vo.VirtualWorkspaceStage;
 import org.codequistify.master.domain.lab.repository.VirtualWorkspaceRepository;
-import org.codequistify.master.domain.player.security.PlayerPrincipal;
+import org.codequistify.master.domain.player.security.AuthenticatedPlayer;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
-import org.codequistify.master.global.lock.LockManager;
 import org.codequistify.master.stage.domain.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
 
 @org.springframework.stereotype.Service
 @RequiredArgsConstructor
@@ -31,9 +31,10 @@ public class VirtualWorkspaceService {
     private static final int SLEEP_PERIOD = 5000;
 
     @LogExecutionTime
-    public Optional<VirtualWorkspace> requestVirtualWorkspace(PlayerPrincipal principal, Stage stage) {
+    @Transactional
+    public Optional<VirtualWorkspace> requestVirtualWorkspace(AuthenticatedPlayer requester, Stage stage) {
         ReentrantLock lock =
-                lockManager.getLock(principal.id().value(), stage.id().value());
+                lockManager.getLock(requester.id().value(), stage.id().value());
         if (!lock.tryLock()) {
             LOGGER.info(
                     "[requestVirtualWorkspace] apply 작업중 중복된 요청 발생. stage: {}",
@@ -44,10 +45,10 @@ public class VirtualWorkspaceService {
         try {
             virtualWorkspaceRepository
                     .findLatestActiveByPlayerIdAndStageId(
-                            principal.id(), stage.id().value())
+                            requester.id(), stage.id().value())
                     .ifPresent(this::deleteSync);
 
-            VirtualWorkspace workspace = VirtualWorkspace.startFor(principal.id(), VirtualWorkspaceStage.from(stage));
+            VirtualWorkspace workspace = VirtualWorkspace.startFor(requester.id(), VirtualWorkspaceStage.from(stage));
             workspace = virtualWorkspaceRepository.save(workspace);
             virtualWorkspaceStateChangeLogger.recordRequested(workspace);
 
@@ -68,37 +69,41 @@ public class VirtualWorkspaceService {
             LOGGER.info("[requestVirtualWorkspace] stage: {}", stage.id().value());
             return Optional.of(waitUntilRunning(workspace));
         } finally {
-            lockManager.unlock(principal.id().value(), stage.id().value());
+            lockManager.unlock(requester.id().value(), stage.id().value());
         }
     }
 
     @LogExecutionTime
-    public void deleteVirtualWorkspaceAsync(PlayerPrincipal principal, Stage stage) {
+    @Transactional
+    public void deleteVirtualWorkspaceAsync(AuthenticatedPlayer requester, Stage stage) {
         virtualWorkspaceRepository
-                .findLatestActiveByPlayerIdAndStageId(principal.id(), stage.id().value())
+                .findLatestActiveByPlayerIdAndStageId(requester.id(), stage.id().value())
                 .ifPresent(this::deleteAsync);
     }
 
     @LogExecutionTime
-    public void deleteVirtualWorkspaceSync(PlayerPrincipal principal, Stage stage) {
+    @Transactional
+    public void deleteVirtualWorkspaceSync(AuthenticatedPlayer requester, Stage stage) {
         virtualWorkspaceRepository
-                .findLatestActiveByPlayerIdAndStageId(principal.id(), stage.id().value())
+                .findLatestActiveByPlayerIdAndStageId(requester.id(), stage.id().value())
                 .ifPresent(this::deleteSync);
     }
 
     @LogExecutionTime
-    public boolean existsRunningVirtualWorkspace(PlayerPrincipal principal, Stage stage) {
+    @Transactional(readOnly = true)
+    public boolean existsRunningVirtualWorkspace(AuthenticatedPlayer requester, Stage stage) {
         boolean exists = virtualWorkspaceRepository
-                .findRunningByPlayerIdAndStageId(principal.id(), stage.id().value())
+                .findRunningByPlayerIdAndStageId(requester.id(), stage.id().value())
                 .isPresent();
 
         LOGGER.info("[existsRunningVirtualWorkspace] exists: {}", exists);
         return exists;
     }
 
-    public VirtualWorkspace getRunningVirtualWorkspace(PlayerPrincipal principal, Stage stage) {
+    @Transactional(readOnly = true)
+    public VirtualWorkspace getRunningVirtualWorkspace(AuthenticatedPlayer requester, Stage stage) {
         return virtualWorkspaceRepository
-                .findRunningByPlayerIdAndStageId(principal.id(), stage.id().value())
+                .findRunningByPlayerIdAndStageId(requester.id(), stage.id().value())
                 .orElseThrow(() -> new BusinessException(ErrorCode.VIRTUAL_WORKSPACE_NOT_FOUND, HttpStatus.NOT_FOUND));
     }
 

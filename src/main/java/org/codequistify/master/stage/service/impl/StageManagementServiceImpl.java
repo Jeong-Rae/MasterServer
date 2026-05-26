@@ -3,12 +3,13 @@ package org.codequistify.master.stage.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.lab.service.LabAssignmentService;
 import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.security.AuthenticatedPlayer;
+import org.codequistify.master.domain.player.security.PlayerAuthorizationGuard;
 import org.codequistify.master.domain.player.security.PlayerDetailsService;
-import org.codequistify.master.domain.player.security.PlayerPrincipal;
 import org.codequistify.master.domain.player.service.PlayerProfileService;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
-import org.codequistify.master.global.util.SuccessResponse;
+import org.codequistify.master.shared.response.SuccessResponse;
 import org.codequistify.master.stage.domain.PlayerStageSolving;
 import org.codequistify.master.stage.domain.Question;
 import org.codequistify.master.stage.domain.Stage;
@@ -19,12 +20,11 @@ import org.codequistify.master.stage.domain.vo.QuestionIndex;
 import org.codequistify.master.stage.domain.vo.StageId;
 import org.codequistify.master.stage.domain.vo.StageQuestions;
 import org.codequistify.master.stage.domain.vo.SubmittedAnswer;
-import org.codequistify.master.stage.dto.QuestionGradingRequest;
 import org.codequistify.master.stage.dto.QuestionGradingResponse;
-import org.codequistify.master.stage.dto.StageQuestionCreateRequest;
-import org.codequistify.master.stage.dto.StageQuestionActionRequest;
 import org.codequistify.master.stage.dto.StageCompletionResponse;
 import org.codequistify.master.stage.dto.StageCreateRequest;
+import org.codequistify.master.stage.dto.StageQuestionActionRequest;
+import org.codequistify.master.stage.dto.StageQuestionCreateRequest;
 import org.codequistify.master.stage.repository.QuestionAttemptRepository;
 import org.codequistify.master.stage.repository.QuestionRepository;
 import org.codequistify.master.stage.repository.StageProgressRepository;
@@ -45,6 +45,7 @@ public class StageManagementServiceImpl implements StageManagementService {
     private final QuestionAttemptRepository questionAttemptRepository;
 
     private final LabAssignmentService labAssignmentService;
+    private final PlayerAuthorizationGuard playerAuthorizationGuard;
     private final PlayerProfileService playerProfileService;
     private final PlayerDetailsService playerDetailsService;
 
@@ -53,7 +54,8 @@ public class StageManagementServiceImpl implements StageManagementService {
 
     @Override
     @Transactional
-    public void saveStage(StageCreateRequest request) {
+    public void saveStage(AuthenticatedPlayer requester, StageCreateRequest request) {
+        playerAuthorizationGuard.requireAdmin(requester);
         Stage stage = Stage.builder()
                 .id(StageId.newId())
                 .title(request.title())
@@ -78,17 +80,18 @@ public class StageManagementServiceImpl implements StageManagementService {
 
     @Override
     @Transactional
-    public QuestionGradingResponse evaluateAnswer(PlayerPrincipal principal, QuestionGradingRequest request) {
-        StageId stageId = StageId.of(request.stageId());
-        QuestionIndex questionIndex = QuestionIndex.of(request.questionIndex());
+    public QuestionGradingResponse evaluateAnswer(
+            AuthenticatedPlayer requester, String stageIdValue, int questionIndexValue, String submittedAnswerValue) {
+        StageId stageId = StageId.of(stageIdValue);
+        QuestionIndex questionIndex = QuestionIndex.of(questionIndexValue);
         Question question = findQuestion(stageId, questionIndex);
 
-        SubmittedAnswer submittedAnswer = SubmittedAnswer.of(request.submittedAnswer());
+        SubmittedAnswer submittedAnswer = SubmittedAnswer.of(submittedAnswerValue);
         boolean correct = question.isPractical()
-                ? evaluatePracticalAnswerCorrectness(principal, stageId, questionIndex)
+                ? evaluatePracticalAnswerCorrectness(requester, stageId, questionIndex)
                 : question.grade(submittedAnswer);
 
-        questionAttemptRepository.record(principal.id(), question, submittedAnswer, correct);
+        questionAttemptRepository.record(requester.id(), question, submittedAnswer, correct);
 
         QuestionIndex nextIndex = questionIndex.next();
         boolean last = !questionRepository.existsById(QuestionId.of(stageId, nextIndex));
@@ -111,40 +114,47 @@ public class StageManagementServiceImpl implements StageManagementService {
     }
 
     private boolean evaluatePracticalAnswerCorrectness(
-            PlayerPrincipal principal, StageId stageId, QuestionIndex questionIndex) {
+            AuthenticatedPlayer requester, StageId stageId, QuestionIndex questionIndex) {
         Stage stage = findStage(stageId);
         StageQuestionActionRequest actionRequest = StageQuestionActionRequest.from(stage.environment(), questionIndex);
 
         SuccessResponse response = labAssignmentService
-                .sendGradingRequest(stage.stageImage(), principal.id(), actionRequest)
+                .sendGradingRequest(stage.stageImage(), requester.id(), actionRequest)
                 .getBody();
 
         return response.success();
     }
 
     @Override
-    @Transactional
-    public SuccessResponse composeVirtualWorkspace(PlayerPrincipal principal, QuestionGradingRequest request) {
-        StageId stageId = StageId.of(request.stageId());
-        QuestionIndex questionIndex = QuestionIndex.of(request.questionIndex());
+    @Transactional(readOnly = true)
+    public SuccessResponse composeVirtualWorkspace(
+            AuthenticatedPlayer requester, String stageIdValue, int questionIndexValue) {
+        StageId stageId = StageId.of(stageIdValue);
+        QuestionIndex questionIndex = QuestionIndex.of(questionIndexValue);
         Stage stage = findStage(stageId);
 
         StageQuestionActionRequest actionRequest = StageQuestionActionRequest.from(stage.environment(), questionIndex);
         return labAssignmentService
-                .sendComposeRequest(stage.stageImage(), principal.id(), actionRequest)
+                .sendComposeRequest(stage.stageImage(), requester.id(), actionRequest)
                 .getBody();
     }
 
     @Override
     @Transactional
-    public StageCompletionResponse recordStageComplete(PlayerPrincipal principal, String stageIdValue) {
+    public StageCompletionResponse recordStageComplete(AuthenticatedPlayer requester, String stageIdValue) {
         StageId stageId = StageId.of(stageIdValue);
-        Player player = playerDetailsService.findOnePlayerById(principal.id().value());
+        Player player = playerDetailsService.findOnePlayerById(requester.id().value());
         Stage stage = findStage(stageId);
 
         PlayerStageSolving solving = stageProgressRepository
                 .findByPlayerIdAndStageId(player.id(), stageId)
-                .orElseGet(() -> PlayerStageSolving.start(player.id(), stageId));
+                .orElseThrow(() -> {
+                    LOGGER.info(
+                            "[recordStageComplete] {}, stage: {}",
+                            ErrorCode.STAGE_PROGRESS_NOT_FOUND.getMessage(),
+                            stageId.value());
+                    return new BusinessException(ErrorCode.STAGE_PROGRESS_NOT_FOUND, HttpStatus.NOT_FOUND);
+                });
         stageProgressRepository.save(
                 solving.completeAt(QuestionIndex.of(stage.stageQuestions().count())));
 
@@ -161,25 +171,29 @@ public class StageManagementServiceImpl implements StageManagementService {
 
     @Override
     @Transactional
-    public void recordInProgressStageInit(PlayerPrincipal principal, QuestionGradingRequest request) {
-        StageId stageId = StageId.of(request.stageId());
-        if (stageProgressRepository.existsByPlayerIdAndStageId(principal.id(), stageId)) {
+    public void recordInProgressStageInit(AuthenticatedPlayer requester, String stageIdValue, int questionIndexValue) {
+        StageId stageId = StageId.of(stageIdValue);
+        QuestionIndex questionIndex = QuestionIndex.of(questionIndexValue);
+        if (!questionIndex.isFirst()) {
+            return;
+        }
+        if (stageProgressRepository.existsByPlayerIdAndStageId(requester.id(), stageId)) {
             return;
         }
 
         findStage(stageId);
-        stageProgressRepository.save(PlayerStageSolving.start(principal.id(), stageId));
+        stageProgressRepository.save(PlayerStageSolving.start(requester.id(), stageId));
         LOGGER.info(
-                "[recordInProgressStageInit] 풀이 시작 기록 stage: {}, index: {}", stageId.value(), request.questionIndex());
+                "[recordInProgressStageInit] 풀이 시작 기록 stage: {}, index: {}", stageId.value(), questionIndex.value());
     }
 
     @Override
     @Transactional
-    public void updateInProgressStage(PlayerPrincipal principal, QuestionGradingRequest request) {
-        StageId stageId = StageId.of(request.stageId());
-        QuestionIndex questionIndex = QuestionIndex.of(request.questionIndex());
+    public void updateInProgressStage(AuthenticatedPlayer requester, String stageIdValue, int questionIndexValue) {
+        StageId stageId = StageId.of(stageIdValue);
+        QuestionIndex questionIndex = QuestionIndex.of(questionIndexValue);
         PlayerStageSolving solving = stageProgressRepository
-                .findByPlayerIdAndStageId(principal.id(), stageId)
+                .findByPlayerIdAndStageId(requester.id(), stageId)
                 .orElseThrow(() -> {
                     LOGGER.info(
                             "[updateInProgressStage] {}, stage: {}",

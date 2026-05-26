@@ -5,16 +5,17 @@ import org.codequistify.master.domain.lab.domain.vo.VirtualWorkspaceEventId;
 import org.codequistify.master.domain.lab.domain.vo.VirtualWorkspaceId;
 import org.codequistify.master.domain.lab.domain.vo.VirtualWorkspaceStage;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
+import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 @Component
 public class VirtualWorkspaceEventPersistenceMapper {
     public VirtualWorkspaceStateChangeEvent toDomain(VirtualWorkspaceEventEntity entity) {
         return new VirtualWorkspaceStateChangeEvent(
-                new VirtualWorkspaceEventId(entity.getId()),
-                new VirtualWorkspaceId(entity.getWorkspaceId()),
-                new PlayerId(entity.getPlayerId()),
-                new VirtualWorkspaceStage(entity.getStageId(), entity.getStageImage()),
+                new VirtualWorkspaceEventId(entity.getId().toString()),
+                new VirtualWorkspaceId(entity.getWorkspaceId().toString()),
+                new PlayerId(entity.getPlayerId().toString()),
+                new VirtualWorkspaceStage(entity.getStageId().toString(), entity.getStageImage()),
                 entity.getEventType(),
                 entity.getFromStatus(),
                 entity.getToStatus(),
@@ -26,10 +27,10 @@ public class VirtualWorkspaceEventPersistenceMapper {
 
     public VirtualWorkspaceEventEntity toEntity(VirtualWorkspaceStateChangeEvent event) {
         return VirtualWorkspaceEventEntity.builder()
-                .id(event.id().value())
-                .workspaceId(event.workspaceId().value())
-                .playerId(event.playerId().value())
-                .stageId(event.stage().id())
+                .id(UUID.fromString(event.id().value()))
+                .workspaceId(UUID.fromString(event.workspaceId().value()))
+                .playerId(UUID.fromString(event.playerId().value()))
+                .stageId(UUID.fromString(event.stage().id()))
                 .stageImage(event.stage().image())
                 .eventType(event.event())
                 .fromStatus(event.fromStatus())

@@ -1,4 +1,4 @@
-package org.codequistify.master.global.config;
+package org.codequistify.master.domain.lab.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

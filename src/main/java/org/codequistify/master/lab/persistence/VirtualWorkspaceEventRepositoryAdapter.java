@@ -1,6 +1,7 @@
 package org.codequistify.master.domain.lab.persistence;
 
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.lab.domain.VirtualWorkspaceStateChangeEvent;
 import org.codequistify.master.domain.lab.domain.vo.VirtualWorkspaceId;
@@ -24,7 +25,9 @@ public class VirtualWorkspaceEventRepositoryAdapter implements VirtualWorkspaceE
 
     @Override
     public List<VirtualWorkspaceStateChangeEvent> findAllByWorkspaceId(VirtualWorkspaceId workspaceId) {
-        return virtualWorkspaceEventJpaRepository.findAllByWorkspaceIdOrderByOccurredAtAsc(workspaceId.value()).stream()
+        return virtualWorkspaceEventJpaRepository
+                .findAllByWorkspaceIdOrderByOccurredAtAsc(UUID.fromString(workspaceId.value()))
+                .stream()
                 .map(virtualWorkspaceEventPersistenceMapper::toDomain)
                 .toList();
     }

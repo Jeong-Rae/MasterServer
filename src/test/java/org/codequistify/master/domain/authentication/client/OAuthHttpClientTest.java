@@ -8,7 +8,7 @@ import static org.mockito.Mockito.when;
 import org.codequistify.master.domain.authentication.vo.OAuthToken;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
-import org.codequistify.master.global.http.WebRequestClient;
+import org.codequistify.master.shared.http.WebRequestClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

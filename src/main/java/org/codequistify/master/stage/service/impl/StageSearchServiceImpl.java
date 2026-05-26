@@ -3,9 +3,8 @@ package org.codequistify.master.stage.service.impl;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.player.domain.vo.PlayerId;
 import org.codequistify.master.domain.player.dto.PlayerStageProgressResponse;
-import org.codequistify.master.domain.player.security.PlayerPrincipal;
+import org.codequistify.master.domain.player.security.AuthenticatedPlayer;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
@@ -16,12 +15,12 @@ import org.codequistify.master.stage.domain.answer.OptionSelectable;
 import org.codequistify.master.stage.domain.vo.QuestionId;
 import org.codequistify.master.stage.domain.vo.QuestionIndex;
 import org.codequistify.master.stage.domain.vo.StageId;
-import org.codequistify.master.stage.dto.StageAttemptHeatMapPoint;
-import org.codequistify.master.stage.dto.PageMetadata;
-import org.codequistify.master.stage.dto.StageQuestionResponse;
-import org.codequistify.master.stage.dto.StageSearchRequest;
+import org.codequistify.master.stage.dto.PageMetadataResponse;
+import org.codequistify.master.stage.dto.StageAttemptHeatMapPointResponse;
 import org.codequistify.master.stage.dto.StagePageResponse;
+import org.codequistify.master.stage.dto.StageQuestionResponse;
 import org.codequistify.master.stage.dto.StageResponse;
+import org.codequistify.master.stage.dto.StageSearchRequest;
 import org.codequistify.master.stage.repository.QuestionRepository;
 import org.codequistify.master.stage.repository.StageQueryRepository;
 import org.codequistify.master.stage.repository.StageRepository;
@@ -106,32 +105,32 @@ public class StageSearchServiceImpl implements StageSearchService {
 
     @Override
     @Transactional(readOnly = true)
-    public PlayerStageProgressResponse getCompletedStagesByPlayerId(String playerId) {
+    public PlayerStageProgressResponse getCompletedStagesByPlayer(AuthenticatedPlayer requester) {
         return new PlayerStageProgressResponse(
-                stageQueryRepository.findStageCodesByProgressStatus(new PlayerId(playerId), CompletedStatus.COMPLETED));
+                stageQueryRepository.findStageCodesByProgressStatus(requester.id(), CompletedStatus.COMPLETED));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public PlayerStageProgressResponse getInProgressStagesByPlayerId(String playerId) {
-        return new PlayerStageProgressResponse(stageQueryRepository.findStageCodesByProgressStatus(
-                new PlayerId(playerId), CompletedStatus.IN_PROGRESS));
+    public PlayerStageProgressResponse getInProgressStagesByPlayer(AuthenticatedPlayer requester) {
+        return new PlayerStageProgressResponse(
+                stageQueryRepository.findStageCodesByProgressStatus(requester.id(), CompletedStatus.IN_PROGRESS));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<StageAttemptHeatMapPoint> getHeatMapDataPointsByModifiedDate(String playerId) {
-        return stageQueryRepository.countAttemptByDate(new PlayerId(playerId));
+    public List<StageAttemptHeatMapPointResponse> getHeatMapDataPointsByModifiedDate(AuthenticatedPlayer requester) {
+        return stageQueryRepository.countAttemptByDate(requester.id());
     }
 
     @Override
     @Transactional(readOnly = true)
     @LogMonitoring
-    public StagePageResponse findStagesByCriteria(StageSearchRequest searchRequest, PlayerPrincipal principal) {
+    public StagePageResponse findStagesByCriteria(StageSearchRequest searchRequest, AuthenticatedPlayer requester) {
         PageRequest pageRequest = PageRequest.of(searchRequest.getPageIndex() - 1, searchRequest.getPageSize());
         Page<StageResponse> pages =
-                stageQueryRepository.findStagesByCriteria(searchRequest, principal.id(), pageRequest);
-        PageMetadata pageMetadata = PageMetadata.of(
+                stageQueryRepository.findStagesByCriteria(searchRequest, requester.id(), pageRequest);
+        PageMetadataResponse pageMetadata = PageMetadataResponse.of(
                 pages.getTotalPages(), pages.getSize(), pages.getNumber() + 1, pages.getNumberOfElements(), (int)
                         pages.getTotalElements());
 

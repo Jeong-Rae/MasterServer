@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.authentication.client.OAuthHttpClient;
+import org.codequistify.master.domain.authentication.config.OAuthKey;
 import org.codequistify.master.domain.authentication.service.OAuthStrategy;
 import org.codequistify.master.domain.authentication.vo.OAuthCode;
 import org.codequistify.master.domain.authentication.vo.OAuthData;
@@ -13,7 +14,6 @@ import org.codequistify.master.domain.authentication.vo.OAuthResource;
 import org.codequistify.master.domain.authentication.vo.OAuthToken;
 import org.codequistify.master.domain.player.domain.authentication.OAuthType;
 import org.codequistify.master.global.aspect.LogMethodInvocation;
-import org.codequistify.master.global.config.OAuthKey;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.slf4j.Logger;
@@ -38,8 +38,8 @@ public class GithubOAuthStrategy implements OAuthStrategy {
     @Override
     public String loginUrl() {
         return "https://github.com/login/oauth/authorize?" + "client_id="
-                + oAuthKey.getGITHUB_CLIENT_ID() + "&redirect_uri="
-                + URLEncoder.encode(oAuthKey.getGITHUB_REDIRECT_URI(), StandardCharsets.UTF_8) + "&response_type=code"
+                + oAuthKey.GITHUB_CLIENT_ID + "&redirect_uri="
+                + URLEncoder.encode(oAuthKey.GITHUB_REDIRECT_URI, StandardCharsets.UTF_8) + "&response_type=code"
                 + "&state="
                 + URLEncoder.encode("pol", StandardCharsets.UTF_8);
     }
@@ -56,12 +56,12 @@ public class GithubOAuthStrategy implements OAuthStrategy {
     private OAuthToken getOAuthToken(OAuthCode code) {
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("code", code.value());
-        body.add("client_id", oAuthKey.getGITHUB_CLIENT_ID());
-        body.add("client_secret", oAuthKey.getGITHUB_CLIENT_SECRET());
+        body.add("client_id", oAuthKey.GITHUB_CLIENT_ID);
+        body.add("client_secret", oAuthKey.GITHUB_CLIENT_SECRET);
         body.add("grant_type", "authorization_code");
         body.add("state", "pol");
 
-        OAuthToken response = oAuthHttpClient.requestToken(oAuthKey.getGITHUB_TOKEN_URI(), body);
+        OAuthToken response = oAuthHttpClient.requestToken(oAuthKey.GITHUB_TOKEN_URI, body);
         LOGGER.info("[getAccessToken] token 정보 {}", response);
         return response;
     }
@@ -70,7 +70,7 @@ public class GithubOAuthStrategy implements OAuthStrategy {
     private OAuthResource getUserResource(String accessToken) {
         try {
             Map<String, String> map =
-                    oAuthHttpClient.requestResource(oAuthKey.getGITHUB_RESOURCE_URI(), accessToken, HashMap.class);
+                    oAuthHttpClient.requestResource(oAuthKey.GITHUB_RESOURCE_URI, accessToken, HashMap.class);
             OAuthResource response =
                     new OAuthResource(String.valueOf(map.get("id")), map.get("login"), map.get("name"));
             LOGGER.info("[getUserResource] 리소스: {}", response);

@@ -1,33 +1,31 @@
 package org.codequistify.master.stage.persistence;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.UUID;
 
 @Embeddable
 public class PlayerStageProgressEntityId implements Serializable {
-    @Convert(converter = UuidStringBinaryConverter.class)
-    @Column(name = "player_id", columnDefinition = "BINARY(16)", nullable = false)
-    private String playerId;
+    @Column(name = "player_id", nullable = false)
+    private UUID playerId;
 
-    @Convert(converter = UuidStringBinaryConverter.class)
-    @Column(name = "stage_id", columnDefinition = "BINARY(16)", nullable = false)
-    private String stageId;
+    @Column(name = "stage_id", nullable = false)
+    private UUID stageId;
 
     protected PlayerStageProgressEntityId() {}
 
-    public PlayerStageProgressEntityId(String playerId, String stageId) {
+    public PlayerStageProgressEntityId(UUID playerId, UUID stageId) {
         this.playerId = playerId;
         this.stageId = stageId;
     }
 
-    public String playerId() {
+    public UUID playerId() {
         return playerId;
     }
 
-    public String stageId() {
+    public UUID stageId() {
         return stageId;
     }
 

@@ -7,13 +7,14 @@ import org.codequistify.master.domain.player.domain.authentication.PlayerAuthent
 import org.codequistify.master.domain.player.domain.authorization.PlayerAuthorization;
 import org.codequistify.master.domain.player.domain.profile.PlayerProfile;
 import org.codequistify.master.domain.player.domain.vo.*;
+import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PlayerPersistenceMapper {
     public Player toDomain(PlayerEntity entity) {
         return new Player(
-                new PlayerId(entity.getId()),
+                new PlayerId(entity.getId().toString()),
                 new PlayerProfile(
                         new PlayerName(entity.getName()),
                         new PlayerEmail(entity.getEmail()),
@@ -29,7 +30,7 @@ public class PlayerPersistenceMapper {
 
     public PlayerEntity toEntity(Player player) {
         return PlayerEntity.builder()
-                .id(player.id().value())
+                .id(UUID.fromString(player.id().value()))
                 .name(player.profile().name().value())
                 .email(player.profile().email().value())
                 .password(player.authentication().hashedPassword().value())

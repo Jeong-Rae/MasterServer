@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS virtual_workspace_event_log (
-    id CHAR(36) NOT NULL,
-    workspace_id CHAR(36) NOT NULL,
-    player_id CHAR(36) NOT NULL,
-    stage_id BIGINT NOT NULL,
+    id UUID NOT NULL,
+    workspace_id UUID NOT NULL,
+    player_id UUID NOT NULL,
+    stage_id UUID NOT NULL,
     stage_image VARCHAR(30) NOT NULL,
     event_type VARCHAR(50) NOT NULL,
     from_status VARCHAR(30),

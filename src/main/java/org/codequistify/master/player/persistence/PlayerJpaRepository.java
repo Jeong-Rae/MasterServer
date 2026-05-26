@@ -1,11 +1,12 @@
 package org.codequistify.master.domain.player.persistence;
 
 import java.util.Optional;
+import java.util.UUID;
 import org.codequistify.master.domain.player.domain.authentication.OAuthType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-public interface PlayerJpaRepository extends JpaRepository<PlayerEntity, String> {
+public interface PlayerJpaRepository extends JpaRepository<PlayerEntity, UUID> {
     Optional<PlayerEntity> findByEmail(String email);
 
     Optional<PlayerEntity> findByRefreshToken(String refreshToken);

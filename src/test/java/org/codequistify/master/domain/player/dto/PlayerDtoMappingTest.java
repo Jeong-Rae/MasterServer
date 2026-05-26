@@ -2,7 +2,6 @@ package org.codequistify.master.domain.player.dto;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.codequistify.master.domain.authentication.dto.SignUpRequest;
 import org.codequistify.master.domain.authentication.vo.OAuthData;
 import org.codequistify.master.domain.authentication.vo.OAuthResource;
 import org.codequistify.master.domain.authentication.vo.OAuthToken;
@@ -28,26 +27,14 @@ class PlayerDtoMappingTest {
                 PlayerAuthentication.local(new HashedPassword("{bcrypt}encoded")),
                 PlayerAuthorization.basicPlayer());
 
-        org.codequistify.master.domain.player.dto.PlayerProfile dto =
-                org.codequistify.master.domain.player.dto.PlayerProfile.from(player);
+        org.codequistify.master.domain.player.dto.PlayerProfileResponse dto =
+                org.codequistify.master.domain.player.dto.PlayerProfileResponse.from(player);
 
         assertThat(dto.id()).isEqualTo(player.id().value());
         assertThat(dto.name()).isEqualTo(player.profile().name().value());
         assertThat(dto.email()).isEqualTo(player.profile().email().value());
         assertThat(dto.level()).isEqualTo(player.profile().experience().value());
         assertThat(dto.roles()).isEqualTo(player.authorization().toStoredAuthorities());
-    }
-
-    @Test
-    void 회원가입_요청을_플레이어로_변환하면_로컬_인증_도메인을_반환한다() {
-        SignUpRequest request = new SignUpRequest("pol", "pol@example.com", "raw-password");
-
-        Player player = request.toPlayer();
-
-        assertThat(player.profile().name().value()).isEqualTo(request.name());
-        assertThat(player.profile().email().value()).isEqualTo(request.email());
-        assertThat(player.authentication().hashedPassword().value()).isEmpty();
-        assertThat(player.authentication().oauthIdentity().type()).isEqualTo(OAuthType.POL);
     }
 
     @Test

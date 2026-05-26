@@ -63,7 +63,7 @@ class OAuthSignServiceTest {
         when(playerDetailsService.findOnePlayerByEmail("oauth@example.com")).thenReturn(player);
         when(playerDetailsService.save(any(Player.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        org.codequistify.master.domain.player.dto.PlayerProfile result =
+        org.codequistify.master.domain.player.dto.PlayerProfileResponse result =
                 oAuthSignService.login(OAuthType.GOOGLE, new OAuthCode("authorization-code"));
 
         assertThat(result.id()).isEqualTo("existing-id");
@@ -78,7 +78,7 @@ class OAuthSignServiceTest {
                 .thenThrow(new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.BAD_REQUEST));
         when(playerDetailsService.save(any(Player.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        org.codequistify.master.domain.player.dto.PlayerProfile result =
+        org.codequistify.master.domain.player.dto.PlayerProfileResponse result =
                 oAuthSignService.login(OAuthType.GOOGLE, new OAuthCode("authorization-code"));
 
         assertThat(result.email()).isEqualTo("oauth@example.com");

@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.lab.client.LabApiClient;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
 import org.codequistify.master.global.aspect.LogExecutionTime;
-import org.codequistify.master.global.util.SuccessResponse;
+import org.codequistify.master.shared.response.SuccessResponse;
 import org.codequistify.master.stage.domain.StageImageType;
 import org.codequistify.master.stage.dto.StageQuestionActionRequest;
 import org.slf4j.Logger;

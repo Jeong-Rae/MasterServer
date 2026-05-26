@@ -9,7 +9,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import org.codequistify.master.global.util.BaseTimeEntity;
+import org.codequistify.master.shared.persistence.BaseTimeEntity;
 
 @Entity
 @Table(name = "question")

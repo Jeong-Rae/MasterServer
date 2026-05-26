@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import org.codequistify.master.global.exception.domain.BusinessException;
-import org.codequistify.master.global.util.BasicResponse;
+import org.codequistify.master.shared.response.BasicResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 

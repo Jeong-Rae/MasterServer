@@ -4,10 +4,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import lombok.*;
 import org.codequistify.master.domain.player.domain.authentication.OAuthType;
-import org.codequistify.master.global.util.BaseTimeEntity;
 import org.codequistify.master.global.uuid.UUIDv7Generator;
+import org.codequistify.master.shared.persistence.BaseTimeEntity;
 import org.hibernate.annotations.ColumnDefault;
 
 @Getter
@@ -19,8 +20,8 @@ import org.hibernate.annotations.ColumnDefault;
 @Table(name = "player")
 public class PlayerEntity extends BaseTimeEntity {
     @Id
-    @Column(name = "player_id", columnDefinition = "char(36)")
-    private String id;
+    @Column(name = "player_id")
+    private UUID id;
 
     @Column(name = "name", unique = true)
     private String name;
@@ -33,7 +34,7 @@ public class PlayerEntity extends BaseTimeEntity {
     private String password;
 
     @Builder.Default
-    @Column(name = "oauth_type")
+    @Column(name = "oauth_type", length = 30)
     @ColumnDefault("'POL'")
     @Enumerated(EnumType.STRING)
     private OAuthType oAuthType = OAuthType.POL;
@@ -42,6 +43,16 @@ public class PlayerEntity extends BaseTimeEntity {
     private String oAuthId;
 
     @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "player_authority",
+            joinColumns = @JoinColumn(name = "player_id"),
+            foreignKey = @ForeignKey(name = "fk_player_authority_player"),
+            uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_player_authority",
+                        columnNames = {"player_id", "authority"})
+            })
+    @Column(name = "authority", nullable = false, length = 80)
     @Builder.Default
     private List<String> roles = new ArrayList<>();
 
@@ -63,8 +74,8 @@ public class PlayerEntity extends BaseTimeEntity {
 
     @PrePersist
     protected void onPrePersist() {
-        if (id == null || id.isBlank()) {
-            id = UUIDv7Generator.generate();
+        if (id == null) {
+            id = UUID.fromString(UUIDv7Generator.generate());
         }
     }
 }

@@ -4,7 +4,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.vo.OAuthAccessToken;
-import org.codequistify.master.global.http.WebRequestClient;
+import org.codequistify.master.shared.http.WebRequestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;

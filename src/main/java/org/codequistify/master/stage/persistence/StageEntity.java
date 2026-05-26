@@ -2,28 +2,35 @@ package org.codequistify.master.stage.persistence;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
-import org.codequistify.master.global.util.BaseTimeEntity;
+import java.util.UUID;
 import org.codequistify.master.global.uuid.UUIDv7Generator;
+import org.codequistify.master.shared.persistence.BaseTimeEntity;
 import org.codequistify.master.stage.domain.DifficultyLevelType;
 import org.codequistify.master.stage.domain.StageGroupType;
 import org.codequistify.master.stage.domain.StageImageType;
 
 @Entity
-@Table(name = "stage")
+@Table(
+        name = "stage",
+        indexes = {
+            @Index(
+                    name = "idx_stage_search_filter",
+                    columnList = "status, stage_group, difficulty_level, created_at, id"),
+            @Index(name = "idx_stage_default_list", columnList = "status, created_at, id")
+        })
 public class StageEntity extends BaseTimeEntity {
     @Id
-    @Convert(converter = UuidStringBinaryConverter.class)
-    @Column(name = "id", columnDefinition = "BINARY(16)", nullable = false)
-    private String id;
+    @Column(name = "id", nullable = false)
+    private UUID id;
 
     @Column(name = "title", nullable = false, length = 120)
     private String title;
@@ -56,14 +63,14 @@ public class StageEntity extends BaseTimeEntity {
     protected StageEntity() {}
 
     private StageEntity(
-            String id,
+            UUID id,
             String title,
             String description,
             StageGroupType stageGroup,
             DifficultyLevelType difficultyLevel,
             StageImageType stageImage,
             StageStatus status) {
-        this.id = id == null || id.isBlank() ? UUIDv7Generator.generate() : id;
+        this.id = id == null ? UUID.fromString(UUIDv7Generator.generate()) : id;
         this.title = title;
         this.description = description;
         this.stageGroup = stageGroup;
@@ -73,7 +80,7 @@ public class StageEntity extends BaseTimeEntity {
     }
 
     public static StageEntity create(
-            String id,
+            UUID id,
             String title,
             String description,
             StageGroupType stageGroup,
@@ -89,7 +96,7 @@ public class StageEntity extends BaseTimeEntity {
         questionCount = questions.size();
     }
 
-    public String id() {
+    public UUID id() {
         return id;
     }
 

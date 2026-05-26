@@ -7,7 +7,7 @@ import org.codequistify.master.domain.authentication.dto.LogInRequest;
 import org.codequistify.master.domain.authentication.dto.SignUpRequest;
 import org.codequistify.master.domain.authentication.service.AuthenticationService;
 import org.codequistify.master.domain.player.domain.Player;
-import org.codequistify.master.domain.player.dto.PlayerProfile;
+import org.codequistify.master.domain.player.dto.PlayerProfileResponse;
 import org.codequistify.master.domain.player.security.PlayerDetailsService;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
@@ -37,14 +37,14 @@ class AuthenticationServiceTest {
     @BeforeEach
     void 테스트_데이터를_준비한다() {
         SignUpRequest request = new SignUpRequest("A", "A@pol.or.kr", "password99763892*");
-        PlayerProfile result = authenticationService.signUp(request);
+        PlayerProfileResponse result = authenticationService.signUp(request);
     }
 
     @Test
     @Order(1)
     void 새로운_회원이_회원가입하면_프로필을_반환한다() {
         SignUpRequest request = new SignUpRequest("B", "B@pol.or.kr", "password99763892*");
-        PlayerProfile result = authenticationService.signUp(request);
+        PlayerProfileResponse result = authenticationService.signUp(request);
 
         assertThat(result).isNotNull();
         assertThat(result.name()).isEqualTo(request.name());
@@ -92,7 +92,7 @@ class AuthenticationServiceTest {
     void 가입된_이메일과_비밀번호로_로그인하면_프로필을_반환한다() {
         LogInRequest request = new LogInRequest("A@pol.or.kr", "password99763892*");
 
-        PlayerProfile result = authenticationService.logIn(request);
+        PlayerProfileResponse result = authenticationService.logIn(request);
 
         assertThat(result).isNotNull();
         assertThat(result.email()).isEqualTo(request.email());

@@ -1,4 +1,4 @@
-package org.codequistify.master.global.util;
+package org.codequistify.master.shared.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

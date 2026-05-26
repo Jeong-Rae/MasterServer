@@ -13,10 +13,10 @@ import org.codequistify.master.domain.lab.domain.VirtualWorkspaceStatus;
 import org.codequistify.master.domain.lab.domain.vo.VirtualWorkspaceStage;
 import org.codequistify.master.domain.lab.repository.VirtualWorkspaceRepository;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
+import org.codequistify.master.domain.player.security.AuthenticatedPlayer;
 import org.codequistify.master.domain.player.security.PlayerPrincipal;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
-import org.codequistify.master.global.lock.LockManager;
 import org.codequistify.master.stage.domain.Stage;
 import org.codequistify.master.stage.domain.StageImageType;
 import org.codequistify.master.stage.domain.vo.StageId;
@@ -49,18 +49,19 @@ class VirtualWorkspaceServiceTest {
                 virtualWorkspaceStateChangeLogger,
                 lockManager);
         PlayerPrincipal principal = principal("player-id");
+        AuthenticatedPlayer requester = AuthenticatedPlayer.from(principal);
         Stage stage = stage("1", StageImageType.S1001);
         ReentrantLock lock = new ReentrantLock();
-        when(lockManager.getLock(principal.id().value(), stage.id().value())).thenReturn(lock);
+        when(lockManager.getLock(requester.id().value(), stage.id().value())).thenReturn(lock);
         when(virtualWorkspaceRepository.findLatestActiveByPlayerIdAndStageId(
-                        principal.id(), stage.id().value()))
+                        requester.id(), stage.id().value()))
                 .thenReturn(Optional.empty());
         when(virtualWorkspaceRepository.save(any(VirtualWorkspace.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         when(virtualWorkspaceProvisioner.runtimeReady(any(VirtualWorkspace.class)))
                 .thenReturn(true);
 
-        Optional<VirtualWorkspace> result = virtualWorkspaceService.requestVirtualWorkspace(principal, stage);
+        Optional<VirtualWorkspace> result = virtualWorkspaceService.requestVirtualWorkspace(requester, stage);
 
         InOrder inOrder =
                 inOrder(virtualWorkspaceRepository, virtualWorkspaceStateChangeLogger, virtualWorkspaceProvisioner);
@@ -94,15 +95,16 @@ class VirtualWorkspaceServiceTest {
                 virtualWorkspaceStateChangeLogger,
                 lockManager);
         PlayerPrincipal principal = principal("player-id");
+        AuthenticatedPlayer requester = AuthenticatedPlayer.from(principal);
         Stage stage = stage("1", StageImageType.S1001);
-        VirtualWorkspace running = VirtualWorkspace.startFor(principal.id(), VirtualWorkspaceStage.from(stage))
+        VirtualWorkspace running = VirtualWorkspace.startFor(requester.id(), VirtualWorkspaceStage.from(stage))
                 .startProvisioning()
                 .markRunning();
         when(virtualWorkspaceRepository.findRunningByPlayerIdAndStageId(
-                        principal.id(), stage.id().value()))
+                        requester.id(), stage.id().value()))
                 .thenReturn(Optional.of(running));
 
-        boolean exists = virtualWorkspaceService.existsRunningVirtualWorkspace(principal, stage);
+        boolean exists = virtualWorkspaceService.existsRunningVirtualWorkspace(requester, stage);
 
         assertThat(exists).isTrue();
         verifyNoInteractions(virtualWorkspaceProvisioner);
@@ -116,19 +118,20 @@ class VirtualWorkspaceServiceTest {
                 virtualWorkspaceStateChangeLogger,
                 lockManager);
         PlayerPrincipal principal = principal("player-id");
+        AuthenticatedPlayer requester = AuthenticatedPlayer.from(principal);
         Stage stage = stage("1", StageImageType.S1001);
-        VirtualWorkspace running = VirtualWorkspace.startFor(principal.id(), VirtualWorkspaceStage.from(stage))
+        VirtualWorkspace running = VirtualWorkspace.startFor(requester.id(), VirtualWorkspaceStage.from(stage))
                 .startProvisioning()
                 .markRunning();
         when(virtualWorkspaceRepository.findLatestActiveByPlayerIdAndStageId(
-                        principal.id(), stage.id().value()))
+                        requester.id(), stage.id().value()))
                 .thenReturn(Optional.of(running));
         when(virtualWorkspaceRepository.save(any(VirtualWorkspace.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         when(virtualWorkspaceProvisioner.runtimeExists(running)).thenReturn(false);
         when(virtualWorkspaceProvisioner.bindingExists(running)).thenReturn(false);
 
-        virtualWorkspaceService.deleteVirtualWorkspaceSync(principal, stage);
+        virtualWorkspaceService.deleteVirtualWorkspaceSync(requester, stage);
 
         InOrder inOrder =
                 inOrder(virtualWorkspaceRepository, virtualWorkspaceStateChangeLogger, virtualWorkspaceProvisioner);
@@ -157,12 +160,13 @@ class VirtualWorkspaceServiceTest {
                 virtualWorkspaceStateChangeLogger,
                 lockManager);
         PlayerPrincipal principal = principal("player-id");
+        AuthenticatedPlayer requester = AuthenticatedPlayer.from(principal);
         Stage stage = stage("1", StageImageType.S1001);
         when(virtualWorkspaceRepository.findRunningByPlayerIdAndStageId(
-                        principal.id(), stage.id().value()))
+                        requester.id(), stage.id().value()))
                 .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> virtualWorkspaceService.getRunningVirtualWorkspace(principal, stage))
+        assertThatThrownBy(() -> virtualWorkspaceService.getRunningVirtualWorkspace(requester, stage))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.VIRTUAL_WORKSPACE_NOT_FOUND);

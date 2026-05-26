@@ -1,9 +1,17 @@
 package org.codequistify.master.domain.authentication.persistence;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import lombok.*;
 import org.codequistify.master.domain.authentication.domain.EmailVerificationType;
-import org.codequistify.master.global.util.BaseTimeEntity;
+import org.codequistify.master.shared.persistence.BaseTimeEntity;
 import org.hibernate.annotations.ColumnDefault;
 
 @Getter

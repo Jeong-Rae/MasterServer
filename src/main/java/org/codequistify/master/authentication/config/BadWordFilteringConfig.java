@@ -1,4 +1,4 @@
-package org.codequistify.master.global.config;
+package org.codequistify.master.domain.authentication.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

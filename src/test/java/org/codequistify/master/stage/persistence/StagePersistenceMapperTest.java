@@ -3,6 +3,7 @@ package org.codequistify.master.stage.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.UUID;
 import org.codequistify.master.stage.domain.AnswerType;
 import org.codequistify.master.stage.domain.DifficultyLevelType;
 import org.codequistify.master.stage.domain.Question;
@@ -16,11 +17,12 @@ import org.codequistify.master.stage.domain.vo.StageQuestions;
 import org.junit.jupiter.api.Test;
 
 class StagePersistenceMapperTest {
+    private static final UUID STAGE_UUID = UUID.fromString("019e3d96-7d43-7cb2-b7b4-07677c2295af");
 
     @Test
     void domainStage를_복합QuestionId와_AnswerEntity_구조로_변환한다() {
         Stage stage = Stage.builder()
-                .id(new StageId("019e3d96-7d43-7cb2-b7b4-07677c2295af"))
+                .id(new StageId(STAGE_UUID.toString()))
                 .title("title")
                 .description("description")
                 .stageGroup(StageGroupType.BASIC_PROBLEMS)
@@ -44,11 +46,11 @@ class StagePersistenceMapperTest {
 
         StageEntity entity = StagePersistenceMapper.toEntity(stage);
 
-        assertThat(entity.id()).isEqualTo(stage.id().value());
+        assertThat(entity.id()).isEqualTo(STAGE_UUID);
         assertThat(entity.questionCount()).isEqualTo(2);
         assertThat(entity.questions()).hasSize(2);
         assertThat(entity.questions().get(0).id().stageId())
-                .isEqualTo(stage.id().value());
+                .isEqualTo(STAGE_UUID);
         assertThat(entity.questions().get(0).answer().options()).hasSize(2);
         assertThat(entity.questions().get(1).answer().shortAnswerValues()).hasSize(1);
     }
@@ -56,7 +58,7 @@ class StagePersistenceMapperTest {
     @Test
     void entityStage를_DomainStage로_복원한다() {
         StageEntity entity = StageEntity.create(
-                "019e3d96-7d43-7cb2-b7b4-07677c2295af",
+                STAGE_UUID,
                 "title",
                 "description",
                 StageGroupType.BASIC_PROBLEMS,
@@ -76,7 +78,7 @@ class StagePersistenceMapperTest {
 
         Stage stage = StagePersistenceMapper.toDomain(entity);
 
-        assertThat(stage.id().value()).isEqualTo(entity.id());
+        assertThat(stage.id().value()).isEqualTo(entity.id().toString());
         assertThat(stage.stageQuestions().count()).isEqualTo(1);
         assertThat(stage.stageQuestions().values().get(0).answer().type()).isEqualTo(AnswerType.MULTIPLE_CHOICE);
     }

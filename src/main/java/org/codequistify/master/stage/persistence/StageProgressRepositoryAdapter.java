@@ -1,6 +1,7 @@
 package org.codequistify.master.stage.persistence;
 
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
 import org.codequistify.master.stage.domain.PlayerStageSolving;
@@ -23,13 +24,14 @@ public class StageProgressRepositoryAdapter implements StageProgressRepository {
     @Override
     public Optional<PlayerStageSolving> findByPlayerIdAndStageId(PlayerId playerId, StageId stageId) {
         return stageProgressJpaRepository
-                .findById(new PlayerStageProgressEntityId(playerId.value(), stageId.value()))
+                .findById(new PlayerStageProgressEntityId(
+                        UUID.fromString(playerId.value()), UUID.fromString(stageId.value())))
                 .map(StageProgressPersistenceMapper::toDomain);
     }
 
     @Override
     public boolean existsByPlayerIdAndStageId(PlayerId playerId, StageId stageId) {
         return stageProgressJpaRepository.existsById(
-                new PlayerStageProgressEntityId(playerId.value(), stageId.value()));
+                new PlayerStageProgressEntityId(UUID.fromString(playerId.value()), UUID.fromString(stageId.value())));
     }
 }

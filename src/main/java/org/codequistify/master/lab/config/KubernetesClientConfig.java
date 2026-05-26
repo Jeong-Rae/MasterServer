@@ -1,4 +1,4 @@
-package org.codequistify.master.global.config;
+package org.codequistify.master.domain.lab.config;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;

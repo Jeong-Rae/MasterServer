@@ -39,7 +39,7 @@ class PlayerDetailsServiceTest {
                 new PlayerPrincipal(new PlayerId("player-id"), PlayerAuthorization.basicPlayer(), false);
         UpdatePasswordRequest request = new UpdatePasswordRequest(null, "short");
 
-        assertThatThrownBy(() -> playerDetailsService.resetPassword(principal, request))
+        assertThatThrownBy(() -> playerDetailsService.resetPassword(AuthenticatedPlayer.from(principal), request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.PASSWORD_POLICY_VIOLATION.getMessage());
         verifyNoInteractions(playerRepository);
@@ -51,7 +51,7 @@ class PlayerDetailsServiceTest {
                 new PlayerPrincipal(new PlayerId("player-id"), PlayerAuthorization.basicPlayer(), false);
         UpdatePasswordRequest request = new UpdatePasswordRequest("password99763892*", "short");
 
-        assertThatThrownBy(() -> playerDetailsService.updatePassword(principal, request))
+        assertThatThrownBy(() -> playerDetailsService.updatePassword(AuthenticatedPlayer.from(principal), request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.PASSWORD_POLICY_VIOLATION.getMessage());
         verifyNoInteractions(playerRepository);

@@ -14,7 +14,7 @@ import org.codequistify.master.domain.authentication.service.OAuthSignService;
 import org.codequistify.master.domain.authentication.vo.OAuthCode;
 import org.codequistify.master.domain.player.domain.authentication.OAuthType;
 import org.codequistify.master.domain.player.domain.vo.RefreshToken;
-import org.codequistify.master.domain.player.dto.PlayerProfile;
+import org.codequistify.master.domain.player.dto.PlayerProfileResponse;
 import org.codequistify.master.domain.player.security.PlayerDetailsService;
 import org.codequistify.master.global.jwt.TokenIssuer;
 import org.codequistify.master.global.jwt.TokenVerifier;
@@ -22,7 +22,7 @@ import org.codequistify.master.global.jwt.cookie.TokenCookieManager;
 import org.codequistify.master.global.jwt.vo.AccessToken;
 import org.codequistify.master.global.jwt.vo.AccessTokenClaims;
 import org.codequistify.master.global.jwt.vo.RefreshTokenClaims;
-import org.codequistify.master.global.util.BasicResponse;
+import org.codequistify.master.shared.response.BasicResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -77,7 +77,7 @@ class AuthenticationControllerTest {
     void OAuth_로그인_URL_통합_경로는_Provider_타입으로_URL을_반환한다() {
         when(oAuthSignService.loginUrl(OAuthType.GOOGLE)).thenReturn("https://oauth.example/google");
 
-        ResponseEntity<BasicResponse> result = controller.loginUrlOAuth("google");
+        ResponseEntity<BasicResponse> result = controller.getOAuthAuthorizationUrl("google");
 
         assertThat(result.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(result.getBody().response()).isEqualTo("https://oauth.example/google");
@@ -85,8 +85,8 @@ class AuthenticationControllerTest {
 
     @Test
     void OAuth_로그인_통합_경로는_Provider_타입과_Code로_로그인하고_토큰_쿠키를_설정한다() {
-        PlayerProfile profile =
-                new PlayerProfile("player-id", "oauthname", "oauth@example.com", 0, List.of("ROLE_PLAYER"));
+        PlayerProfileResponse profile =
+                new PlayerProfileResponse("player-id", "oauthname", "oauth@example.com", 0, List.of("ROLE_PLAYER"));
         when(oAuthSignService.login(any(OAuthType.class), any(OAuthCode.class))).thenReturn(profile);
         when(tokenIssuer.issueRefreshToken(any(RefreshTokenClaims.class)))
                 .thenReturn(new RefreshToken("refresh-token"));
@@ -94,7 +94,7 @@ class AuthenticationControllerTest {
 
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
         ResponseEntity<LoginResponse> result =
-                controller.socialLogInOAuth("google", new SocialLogInRequest("authorization-code"), servletResponse);
+                controller.createOAuthSession("google", new SocialLogInRequest("authorization-code"), servletResponse);
 
         ArgumentCaptor<OAuthCode> codeCaptor = ArgumentCaptor.forClass(OAuthCode.class);
         verify(oAuthSignService).login(org.mockito.ArgumentMatchers.eq(OAuthType.GOOGLE), codeCaptor.capture());

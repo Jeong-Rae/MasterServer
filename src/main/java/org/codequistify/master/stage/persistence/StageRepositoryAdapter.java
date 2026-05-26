@@ -2,6 +2,7 @@ package org.codequistify.master.stage.persistence;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.stage.domain.Stage;
 import org.codequistify.master.stage.domain.vo.StageId;
@@ -21,7 +22,7 @@ public class StageRepositoryAdapter implements StageRepository {
 
     @Override
     public Optional<Stage> findById(StageId id) {
-        return stageJpaRepository.findById(id.value()).map(StagePersistenceMapper::toDomain);
+        return stageJpaRepository.findById(UUID.fromString(id.value())).map(StagePersistenceMapper::toDomain);
     }
 
     @Override

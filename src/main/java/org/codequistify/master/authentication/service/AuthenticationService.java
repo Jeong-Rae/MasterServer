@@ -2,7 +2,6 @@ package org.codequistify.master.domain.authentication.service;
 
 import com.vane.badwordfiltering.BadWordFiltering;
 import io.jsonwebtoken.Claims;
-import jakarta.validation.Valid;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -12,10 +11,16 @@ import org.codequistify.master.domain.authentication.dto.LogInRequest;
 import org.codequistify.master.domain.authentication.dto.SignUpRequest;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.domain.authentication.OAuthType;
+import org.codequistify.master.domain.player.domain.authentication.PlayerAuthentication;
+import org.codequistify.master.domain.player.domain.authorization.PlayerAuthorization;
+import org.codequistify.master.domain.player.domain.profile.PlayerProfile;
+import org.codequistify.master.domain.player.domain.vo.PlayerEmail;
+import org.codequistify.master.domain.player.domain.vo.PlayerExperience;
+import org.codequistify.master.domain.player.domain.vo.PlayerId;
 import org.codequistify.master.domain.player.domain.vo.PlayerName;
 import org.codequistify.master.domain.player.domain.vo.RawPassword;
 import org.codequistify.master.domain.player.domain.vo.RefreshToken;
-import org.codequistify.master.domain.player.dto.PlayerProfile;
+import org.codequistify.master.domain.player.dto.PlayerProfileResponse;
 import org.codequistify.master.domain.player.security.HashPasswordEncoder;
 import org.codequistify.master.domain.player.security.PlayerDetailsService;
 import org.codequistify.master.domain.player.service.PlayerProfileService;
@@ -25,7 +30,7 @@ import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.global.jwt.TokenIssuer;
 import org.codequistify.master.global.jwt.TokenVerifier;
-import org.codequistify.master.global.jwt.dto.TokenInfo;
+import org.codequistify.master.global.jwt.dto.TokenInfoResponse;
 import org.codequistify.master.global.jwt.dto.TokenRequest;
 import org.codequistify.master.global.jwt.vo.AccessToken;
 import org.codequistify.master.global.jwt.vo.AccessTokenClaims;
@@ -55,7 +60,7 @@ public class AuthenticationService {
 
     @Transactional
     @LogMonitoring
-    public PlayerProfile signUp(SignUpRequest request) {
+    public PlayerProfileResponse signUp(SignUpRequest request) {
         playerDetailsService
                 .checkOAuthType(request.email()) // 기존 가입된 계정인지 확인
                 .ifPresent(authType -> {
@@ -96,17 +101,21 @@ public class AuthenticationService {
             throw new BusinessException(ErrorCode.DUPLICATE_NAME, HttpStatus.BAD_REQUEST);
         }
 
-        Player player = request.toPlayer().withHashedPassword(hashPasswordEncoder.encode(rawPassword));
+        Player player = Player.create(
+                PlayerId.newId(),
+                new PlayerProfile(playerName, new PlayerEmail(request.email()), new PlayerExperience(0)),
+                PlayerAuthentication.local(hashPasswordEncoder.encode(rawPassword)),
+                PlayerAuthorization.basicPlayer());
         player = playerDetailsService.save(player);
 
         LOGGER.info("[signUp] Player: {}, 회원가입 완료", player.id().value());
 
-        return PlayerProfile.from(player);
+        return PlayerProfileResponse.from(player);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     @LogMonitoring
-    public PlayerProfile logIn(@Valid LogInRequest request) {
+    public PlayerProfileResponse logIn(LogInRequest request) {
         Player player;
         try {
             player = playerDetailsService.findOnePlayerByEmail(request.email());
@@ -118,7 +127,7 @@ public class AuthenticationService {
             throw new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
         }
 
-        return PlayerProfile.from(player);
+        return PlayerProfileResponse.from(player);
     }
 
     @Transactional
@@ -134,17 +143,20 @@ public class AuthenticationService {
         playerDetailsService.save(player);
     }
 
+    @Transactional(readOnly = true)
     @LogMonitoring
     public boolean checkEmailDuplication(String email) {
         return playerDetailsService.isExistPlayer(email);
     }
 
+    @Transactional
     @LogMonitoring
     public void updateRefreshToken(String id, String refreshToken) {
         LOGGER.info("[updateRefreshToken] {}", id);
         playerDetailsService.updateRefreshToken(id, refreshToken);
     }
 
+    @Transactional(readOnly = true)
     @LogMonitoring
     public IssuedTokens reissueAccessToken(TokenRequest request) {
         RefreshTokenClaims refreshTokenClaims = tokenVerifier.parseRefreshToken(request.refreshToken());
@@ -167,7 +179,7 @@ public class AuthenticationService {
     }
 
     @LogExecutionTime
-    public TokenInfo analyzeTokenInfo(String token) {
+    public TokenInfoResponse analyzeTokenInfo(String token) {
         Claims claims = tokenVerifier.getClaims(token);
         if (claims == null) {
             throw new BusinessException(ErrorCode.INVALID_TOKEN, HttpStatus.BAD_REQUEST);
@@ -183,6 +195,6 @@ public class AuthenticationService {
         List<String> roles = (List<String>) claims.get("role");
         boolean valid = tokenVerifier.isValidatedToken(token);
 
-        return new TokenInfo(aud, roles, iat, exp, iss, valid);
+        return new TokenInfoResponse(aud, roles, iat, exp, iss, valid);
     }
 }
