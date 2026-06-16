@@ -1,5 +1,6 @@
 package org.codequistify.master.domain.player.persistence;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Repository;
 public class PlayerRepositoryAdapter implements PlayerRepository {
     private final PlayerJpaRepository playerJpaRepository;
     private final PlayerPersistenceMapper playerPersistenceMapper;
+    private final JPAQueryFactory queryFactory;
 
     @Override
     public Player save(Player player) {
@@ -43,7 +45,12 @@ public class PlayerRepositoryAdapter implements PlayerRepository {
 
     @Override
     public Optional<OAuthType> findAuthenticationTypeByEmail(PlayerEmail email) {
-        return playerJpaRepository.findOAuthTypeByEmail(email.value());
+        QPlayerEntity player = QPlayerEntity.playerEntity;
+        return Optional.ofNullable(queryFactory
+                .select(player.oAuthType)
+                .from(player)
+                .where(player.email.eq(email.value()))
+                .fetchOne());
     }
 
     @Override

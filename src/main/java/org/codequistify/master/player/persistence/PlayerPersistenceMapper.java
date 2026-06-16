@@ -1,5 +1,6 @@
 package org.codequistify.master.domain.player.persistence;
 
+import java.util.UUID;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.domain.PlayerStatus;
 import org.codequistify.master.domain.player.domain.authentication.OAuthIdentity;
@@ -7,7 +8,6 @@ import org.codequistify.master.domain.player.domain.authentication.PlayerAuthent
 import org.codequistify.master.domain.player.domain.authorization.PlayerAuthorization;
 import org.codequistify.master.domain.player.domain.profile.PlayerProfile;
 import org.codequistify.master.domain.player.domain.vo.*;
-import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 @Component

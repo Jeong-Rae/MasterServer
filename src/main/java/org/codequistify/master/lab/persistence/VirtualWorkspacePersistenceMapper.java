@@ -1,10 +1,10 @@
 package org.codequistify.master.domain.lab.persistence;
 
+import java.util.UUID;
 import org.codequistify.master.domain.lab.domain.VirtualWorkspace;
 import org.codequistify.master.domain.lab.domain.vo.VirtualWorkspaceId;
 import org.codequistify.master.domain.lab.domain.vo.VirtualWorkspaceStage;
 import org.codequistify.master.domain.player.domain.vo.PlayerId;
-import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 @Component

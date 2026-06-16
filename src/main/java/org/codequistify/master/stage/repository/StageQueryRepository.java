@@ -18,5 +18,9 @@ public interface StageQueryRepository {
 
     List<StageAttemptHeatMapPointResponse> countAttemptByDate(PlayerId playerId);
 
+    Optional<StageResponse> findStageSummaryById(String stageId);
+
+    List<StageResponse> findApprovedStageSummaries();
+
     Optional<StageResponse> findPreviewBySearchText(String query);
 }

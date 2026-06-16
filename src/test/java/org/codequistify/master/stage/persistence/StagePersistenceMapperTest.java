@@ -49,8 +49,7 @@ class StagePersistenceMapperTest {
         assertThat(entity.id()).isEqualTo(STAGE_UUID);
         assertThat(entity.questionCount()).isEqualTo(2);
         assertThat(entity.questions()).hasSize(2);
-        assertThat(entity.questions().get(0).id().stageId())
-                .isEqualTo(STAGE_UUID);
+        assertThat(entity.questions().get(0).id().stageId()).isEqualTo(STAGE_UUID);
         assertThat(entity.questions().get(0).answer().options()).hasSize(2);
         assertThat(entity.questions().get(1).answer().shortAnswerValues()).hasSize(1);
     }

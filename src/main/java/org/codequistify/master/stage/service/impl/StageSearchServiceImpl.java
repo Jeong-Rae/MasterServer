@@ -53,6 +53,15 @@ public class StageSearchServiceImpl implements StageSearchService {
 
     @Override
     @Transactional(readOnly = true)
+    public StageResponse getStageSummary(String stageId) {
+        return stageQueryRepository.findStageSummaryById(stageId).orElseThrow(() -> {
+            LOGGER.info("[getStageSummary] 등록되지 않은 스테이지 id: {}", stageId);
+            return new BusinessException(ErrorCode.STAGE_NOT_FOUND, HttpStatus.NOT_FOUND);
+        });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public StageQuestionResponse findQuestion(String stageId, int questionIndex) {
         Question question = questionRepository
                 .findById(QuestionId.of(StageId.of(stageId), QuestionIndex.of(questionIndex)))
@@ -88,12 +97,10 @@ public class StageSearchServiceImpl implements StageSearchService {
         HangulExtractor hangulExtractor = new HangulExtractor();
         String choSrc = hangulExtractor.extractChoseongs(query);
 
-        return stageRepository.findAll().stream()
-                .parallel()
+        return stageQueryRepository.findApprovedStageSummaries().stream()
                 .filter(stage -> hangulExtractor.containsByChoseong(stage.title(), choSrc)
                         || hangulExtractor.containsByChoseong(stage.description(), choSrc))
-                .findAny()
-                .map(stage -> StageResponse.from(stage, CompletedStatus.NOT_COMPLETED))
+                .findFirst()
                 .orElseThrow(EntityNotFoundException::new);
     }
 

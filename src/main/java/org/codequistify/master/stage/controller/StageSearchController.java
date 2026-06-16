@@ -7,8 +7,6 @@ import org.codequistify.master.domain.player.security.AuthenticatedPlayer;
 import org.codequistify.master.domain.player.security.PlayerPrincipal;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
-import org.codequistify.master.stage.domain.CompletedStatus;
-import org.codequistify.master.stage.domain.Stage;
 import org.codequistify.master.stage.dto.StagePageResponse;
 import org.codequistify.master.stage.dto.StageQuestionResponse;
 import org.codequistify.master.stage.dto.StageResponse;
@@ -47,10 +45,7 @@ public class StageSearchController implements StageSearchApi {
     @LogExecutionTime
     @GetMapping("stages/{stage_id}")
     public ResponseEntity<StageResponse> getStage(@PathVariable(value = "stage_id") String stageId) {
-        Stage stage = stageSearchService.getStageById(stageId);
-        StageResponse response = StageResponse.from(stage, CompletedStatus.NOT_COMPLETED);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(stageSearchService.getStageSummary(stageId));
     }
 
     // 스테이지 문항 조회 -> 정답은 클라이언트에게 제공 안 됨, 옵션들은 전부 제공되어야 함

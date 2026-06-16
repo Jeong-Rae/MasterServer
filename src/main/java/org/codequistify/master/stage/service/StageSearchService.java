@@ -14,6 +14,8 @@ public interface StageSearchService {
     // 스테이지 조회
     Stage getStageById(String stageId);
 
+    StageResponse getStageSummary(String stageId);
+
     // 스테이지 목록 조회
     StagePageResponse findStagesByCriteria(StageSearchRequest searchRequest, AuthenticatedPlayer requester);
 
